@@ -9,7 +9,6 @@ var modules = {};
 
 if(!exists)
 db.serialize(function() {
-	log("sql-debug", "creating table");
 	db.run("CREATE TABLE IF NOT EXISTS quotes (user VARCHAR(32), added BIGINT, chan VARCHAR(32), quote TEXT)");
 });
 
@@ -91,26 +90,6 @@ function parseCommand(chan, user, msg) {
 	});
 }
 
-/*
-
-commands we want quotebot to have
-
-anyone:
-[done] find <string>					// find quote containing $string
-[done] q [<id>]							// $id given: echo quote $id, no id given: echo random quote
-[done] count [<users|quotes>]// echoes amount of allowed users and/or quotes in db
-[done] info|about						// display some information about quotebot
-[done] modules								// list of all running modules
-[done] help [<module>]			// pm list of commands
-
-allowed users:
-[done] add <quote>					// add $quote
-
-commands for owner:
-[done] del <id>							// delete quote $id
-[done] reload								// reload config
-[done] quit [<msg>]					// shutdown quotebot
-*/
 var cmds = {
 	"find": {desc: {params: "<string>", desc: "find quote(s) containing the given string"}},
 	"q": {desc: {params: "[<id>]", desc: "show random quote or quote with given id"}},
@@ -306,7 +285,6 @@ function execCommand(chan, user, cmd, allowed, owner) {
 // =============================================
 
 function reload() {
-	//unloadModules();
 	log("info", "reloading configuration...");
 	delete require.cache[require.resolve('./qBot')];
 	c = require('./qBot');
@@ -322,12 +300,6 @@ function reload() {
 		});
 	});
 }
-
-//function unloadModules() {
-//	for(var i = 0; i < c.modules.length; i++) {
-//		delete require.cache[require.resolve('./modules/'+c.modules[i])];
-//	}
-//}
 
 function loadModules() {
 	modules = {};
