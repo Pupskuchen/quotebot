@@ -1,0 +1,30 @@
+{
+	"server": {
+		"host": "some.irc.network",
+		"port": 6697,
+		"ssl":	true,
+		"sslconf": {
+			"allowSelfSigned": true
+		},
+		"chans": [
+			"#foo"
+		]
+	},
+
+	"client": {
+		"nick": "quoteBot",
+		"user": "QuotingBot",
+		"real": "pupskuchen's quoteBot",
+		"pass": ""
+	},
+
+	"log": true,
+	"commandchar": "!",
+
+	"modules": [
+	],
+
+	"allowbyaccount": true,
+	"allowed": [
+	]
+}
