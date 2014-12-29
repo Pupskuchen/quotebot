@@ -1,0 +1,13 @@
+{
+	"name": "quotebot",
+	"version": "1.0.0",
+	"description": "a simple irc bot for quoting people",
+	"author": "pupskuchen <pkn@thepups.net>",
+	"bugs": {
+		"url": "https://github.com/Pupskuchen/quotebot/issues"
+	},
+	"dependencies": {
+		"coffea": ">= 0.1.2",
+		"sqlite3": ">= 2.2.3"
+	}
+}
