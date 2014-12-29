@@ -6,7 +6,7 @@ exports.desc = {
 	needed: ""
 };
 
-exports.exec = function(bot, chan, user, params, allowed, owner, db) {
+exports.exec = function() {
 	var d = new Date();
-	bot.send(chan, user.getNick()+': time: '+d.toUTCString()+" | unix timestamp: "+Math.round(Date.now()/1000));
+	chanMsg('time: '+d.toUTCString()+" | unix timestamp: "+Math.round(Date.now()/1000));
 };

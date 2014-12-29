@@ -6,6 +6,14 @@ exports.desc = {
 	needed: "" // needed permissions, can be an empty string, "allowed" or "owner" (used for help)
 };
 
-exports.exec = function(bot, chan, user, params, allowed, owner, db) {
+// to be executed on command
+exports.exec = function() {
 
 };
+
+/*
+// "destructor"
+exports.stop = function() {
+
+};
+*/

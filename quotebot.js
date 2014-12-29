@@ -1,8 +1,6 @@
 var coffea = require('coffea'), sqlite = require('sqlite3'), c = require('./qBot');
-var fs = require('fs'), exists = true;
-if(!fs.existsSync('quotes.db')) {
-	exists = false;
-}
+var fs = require('fs');
+var exists = fs.existsSync('quotes.db') ? true : false;
 var db = new sqlite.Database('quotes.db');
 var stream;
 var modules = {};
@@ -42,11 +40,11 @@ if(c.server.ssl) {
 
 var client = coffea(stream);
 
-if(c.client.pass != "") client.pass(c.client.pass);
-client.nick(c.client.nick);
-client.user(c.client.user, c.client.real);
+setClientInfo();
 
 client.on('motd', function(motd) {
+	log("info", "connected to "+client.getServerInfo().servername);
+	if(c.client.nickserv != "") client.send("NickServ", "IDENTIFY "+c.client.nickserv);
 	log('info', 'joining channel'+(c.server.chans.length > 1 ? 's' : '')+': '+c.server.chans);
 	client.join(c.server.chans);
 });
@@ -71,13 +69,17 @@ client.on('privatemessage', function(e) {
 	if(!e.isAction) {
 		if(Object.prototype.toString.call(c.commandchar) === '[object Array]') {
 			for(var i = 0; i < c.commandchar.length; i++) {
-				if(e.message.charAt(0) === c.commandchar[i]) parseCommand(null, e.user, e.message.substr(c.commandchar[i].length));
+				if(e.message.charAt(0) === c.commandchar[i]) return parseCommand(null, e.user, e.message.substr(c.commandchar[i].length));
 			}
 		} else {
-			if(e.message.charAt(0) === c.commandchar) parseCommand(null, e.user, e.message.substr(c.commandchar.length));
+			if(e.message.charAt(0) === c.commandchar) return parseCommand(null, e.user, e.message.substr(c.commandchar.length));
 		}
 		parseCommand(null, e.user, e.message);
 	}
+});
+
+client.on('quit', function(e) {
+	if(e.user.getNick() in longquotes) delete longquotes[e.user.getNick()];
 });
 
 // =============================================
@@ -93,37 +95,44 @@ function parseCommand(chan, user, msg) {
 var cmds = {
 	"find": {desc: {params: "<string>", desc: "find quote(s) containing the given string"}},
 	"q": {desc: {params: "[<id>]", desc: "show random quote or quote with given id"}},
-	"count": {desc: {params: "[<users|quotes>]", desc: "echoes amount of configured users and/or quotes in database"}},
+	"count": {desc: {params: "[users|quotes]", desc: "echoes amount of configured users and/or quotes in database"}},
 	"about": {desc: {params: "", desc: ""}},
 	"modules": {desc: {params: "", desc: "list all loaded modules"}},
 	"help": {desc: {params: "[<module>]", desc: "show this."}},
-	"add": {desc: {params: "<quote>", desc: "add quote $quote", needed: "allowed"}},
+	"add": {desc: {params: "<quote>|long", desc: "add quote $quote or quote with multiple lines", needed: "allowed"}},
 	"del": {desc: {params: "<id>", desc: "delete quote $id", needed: "owner"}},
 	"reload": {desc: {params: "", desc: "reload configuration", needed: "owner"}},
-	"quit": {desc: {params: "[<msg>]", desc: "quit (with msg as quitmsg, if given)", needed: "owner"}}
+	"quit": {desc: {params: "[<msg>]", desc: "quit (with msg as quitmsg, if given)", needed: "owner"}},
+	"tag": {desc: {params: "<quote|user> <tag>", desc: "tag a quote or user"}, needed: "allowed"},
+	"deltag": {desc: {params: "<quote|user> <tag>", desc: "remove a tag of a quote or user"}, needed: "owner"}
 };
+var longquotes = {};
 
 function execCommand(chan, user, cmd, allowed, owner) {
-	var nick = user.getNick();
+	nick = user.getNick();
+	raw = cmd;
 	cmd = cmd.split(" ");
-	var params = cmd.splice(1, cmd.length);
-	var stringparam = params.join(" ");
-	cmd = cmd[0];
-	var pm = !chan ? true : false;
+	params = cmd.splice(1, cmd.length);
+	stringparam = params.join(" ");
+	paramparams = params.splice(1, params.length);
+	paramstringparam = paramparams.join(" ");
+	cmd = cmd[0].toLowerCase();
+	pm = !chan ? true : false;
 
 	permissionError =	function() {chanMsg("You don't have permissions for this command.")};
 	paramError = function(usage) {chanMsg("Usage: "+usage)};
-	chanMsg = function(msg, noNick) {
-		if(!pm) client.send(chan, noNick ? msg : nick+": "+msg)
+	chanMsg = function(msg, noNick, cchan) {
+		msg = colorize(msg);
+		if(!pm || cchan) client.send((cchan ? cchan : chan), noNick ? msg : nick+": "+msg)
 		else userMsg(msg);
 	};
-	userMsg = function(msg) {client.send(user, msg)};
-	
+	userMsg = function(msg) {client.send(user, colorize(msg))};
+
 	help = function(l, gcmds) {
 		if(l in gcmds) {
 			if(gcmds[l].desc.needed) {
-				if(gcmds[l].desc.needed == "allowed" && allowed) userMsg(l+" "+gcmds[l].desc.params+" - "+gcmds[l].desc.desc);
-				else if(gcmds[l].desc.needed == "owner" && owner) userMsg(l+" "+gcmds[l].desc.params+" - "+gcmds[l].desc.desc);
+				if(gcmds[l].desc.needed == "allowed" && allowed) userMsg(l+""+(gcmds[l].desc.params != "" ? " "+gcmds[l].desc.params+" " : "")+"- "+gcmds[l].desc.desc);
+				else if(gcmds[l].desc.needed == "owner" && owner) userMsg(l+""+(gcmds[l].desc.params != "" ? " "+gcmds[l].desc.params+" " : "")+"- "+gcmds[l].desc.desc);
 				else permissionError();
 			} else {
 				userMsg(l+" "+(gcmds[l].desc.params ? gcmds[l].desc.params+" " : "")+"- "+gcmds[l].desc.desc);
@@ -132,7 +141,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		}
 		return false;
 	};
-	
+
 	listCommands = function(gcmds) {
 		var list = [[], [], []]
 		for(key in gcmds) {
@@ -147,6 +156,34 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		}
 		return list;
 	};
+
+	removeTimestamp = function(msg) {
+		return msg.replace(/\[([0-9]{2}:?){2,3}\](\ +)?/g, '');
+	};
+
+	endLongQuote = function() {
+		var q = longquotes[nick];
+		delete longquotes[nick];
+		if(q.length < 1)	return chanMsg("No input given, therefore nothing saved.");
+		execCommand(chan, user, "add "+q.join("\n"), allowed, owner);
+	};
+	
+	if(pm && nick in longquotes) {
+		if(cmd === "end") endLongQuote();
+		else if(cmd === "cancel" || cmd === "abort") {
+			delete longquotes[nick];
+			chanMsg("Cancelled long quote");
+		}
+		else {
+			if(removeTimestamp(raw).replace(/[^0-9a-zA-Z]/g, '').length < 5) return userMsg("ignored: a line has to be at least 5 characters long. continuing...");
+			longquotes[nick].push(removeTimestamp(raw));
+			if(longquotes[nick].length >= 10) {
+				userMsg("the maximum of ten lines has been reached.");
+				endLongQuote();
+			}
+		}
+		return;
+	}
 
 	switch(cmd) {
 		case "help":
@@ -166,7 +203,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 				userMsg("commands: "+list.join(", "));
 				if(allowed) userMsg("for allowed users: "+alist.join(", "));
 				if(allowed && owner) userMsg("for owner: "+olist.join(", "));
-				userMsg("use !help <command> for detailed help");
+				userMsg("use {B}help <command>{R} for detailed help");
 			}
 			return;
 		case "info":
@@ -177,20 +214,31 @@ function execCommand(chan, user, cmd, allowed, owner) {
 			else return chanMsg("no mods loaded");
 		case "q":
 			db.serialize(function() {
-				var d;
-				if(params.length > 0 && !isNaN(params[0])) d = db.prepare("SELECT *, rowid AS id FROM quotes WHERE id = ?", params[0]);
+				var d, r = new RegExp(/[0-9]+/);
+				if(params.length > 0 && !isNaN(params[0]) && r.test(params[0])) d = db.prepare("SELECT *, rowid AS id FROM quotes WHERE id = ?", params[0]);
 				else d = db.prepare("SELECT *, rowid AS id FROM quotes ORDER BY RANDOM() LIMIT 1");
 				d.get(function(err, row) {
-					if(typeof row === "undefined") {
-						chanMsg("nothing found");
-						return;
-					}
+					if(typeof row === "undefined") return chanMsg("nothing found");
 					var dt = new Date(row.added*1000);
-					chanMsg("quote #"+row.id+": \u00ab "+row.quote+" \u00bb (added "+dt.toUTCString()+" by "+row.user+" in "+row.chan+")", true);
+					var q = row.quote.split("\n");
+					chanMsg("quote #"+row.id+": \u00ab "+(q.length == 1 ? row.quote : q.join(" | "))+" \u00bb (added "+dt.toUTCString()+" by "+insert(row.user, "\u200b", 1)+" in "+(row.chan ? insert(row.chan, "\u200b", 2) : "pm")+")", true);
 				});
 				d.finalize();
 			});
 			return;
+		case "tag":
+			return chanMsg("this is WIP");
+			chanMsg(""+params);
+			if(params.length < 2) return paramError(cmds.tag.desc.params);
+			var d, r = new RegExp(/[0-9]+/);
+			if(!isNaN(params[0]) && r.test(params[0])) {
+				
+			} else {
+			
+			}
+			return;
+		case "deltag":
+			return chanMsg("this is WIP");
 		case "count":
 			if(params.length > 0 && params[0] == "users") return chanMsg("I have "+c.allowed.length+" allowed user"+(c.allowed.length === 1 ? "" : "s")+"."+(c.allowbyaccount ? " But any logged in user can create quotes." : ""));
 			db.serialize(function() {
@@ -217,26 +265,39 @@ function execCommand(chan, user, cmd, allowed, owner) {
 						if(rows.length < 1) return chanMsg("nothing found");
 						userMsg("I found "+rows.length+" quote"+(rows.length == 1 ? "" : "s")+" matching your pattern.");
 						rows.forEach(function(el, i, arr) {
-							userMsg("#"+el.id+" (by "+el.user+"): \u00ab "+el.quote+" \u00bb");
+							el.quote = el.quote.split("\n");
+							userMsg("#"+el.id+" (by "+el.user+"): \u00ab "+(el.quote.length > 30 ? el.quote.join(" | ").substr(0,30)+"..." : el.quote.join(" | "))+" \u00bb");
 						});
 				});
 			});
 			return;
 		case "add":
 			if(allowed) {
-				if(stringparam.length < 1) return paramError("add <quote>");
+				var string = removeTimestamp(stringparam).replace(/[^0-9a-zA-Z]/g, '');
+				if(string === "long") {
+					longquotes[nick] = [];
+					userMsg("Waiting for your input. You can enter multiple lines. To end the quote, enter END (in a new line).");
+					return;
+				}
+				if(string.length < 3) return paramError("add <quote> (at least 5 characters)");
 				db.serialize(function() {
 					db.run("INSERT INTO quotes (user, added, chan, quote) VALUES($user, $added, $chan, $quote)", {
 						$user: nick,
 						$added: Math.round(Date.now()/1000),
 						$chan: chan,
-						$quote: stringparam
+						$quote: removeTimestamp(stringparam)
 					}, function(err) {
 						if(!err) chanMsg("Quote #"+this.lastID+" saved.");
 					});
 				});
 				return;
 			} else return permissionError();
+		case "end":
+			if(!allowed)  return permissionError();
+			if(nick in longquotes) {
+				endLongQuote();
+			} else chanMsg("u stupid (you haven't started any long quotes)");
+			return;
 		case "del":
 			if(allowed && owner) {
 				var r = new RegExp(/[0-9]+-[0-9]+/);
@@ -270,13 +331,43 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		case "quit":
 			if(allowed && owner) {
 				db.close();
-				if(params.length > 0) client.quit(params.join(" "));
+				if(params.length > 0) client.quit(stringparam);
 				else client.quit("quotebot has to go now :c");
 			} else return permissionError();
 	}
 
 	if(cmd in modules) {
-		return modules[cmd].exec(client, chan, user, params, allowed, owner, db);
+/*		modules[cmd].info = {
+			"chanMsg": chanMsg,
+			"permissionError": permissionError,
+			"paramError": paramError,
+			"userMsg": userMsg,
+			"chan": chan,
+			"user": user,
+			"nick": nick,
+			"params": params,
+			"allowed": allowed,
+			"owner": owner,
+			"pm": pm,
+			"raw": raw,
+			"paramparams": paramparams,
+			"paramstringparam": paramstringparam
+		};*/
+		modules[cmd].chanMsg = chanMsg;
+		modules[cmd].permissionError = permissionError;
+		modules[cmd].paramError = paramError;
+		modules[cmd].userMsg = userMsg;
+		modules[cmd].chan = chan;
+		modules[cmd].user = user;
+		modules[cmd].nick = nick;
+		modules[cmd].params = params;
+		modules[cmd].allowed = allowed;
+		modules[cmd].owner = owner;
+		modules[cmd].pm = pm;
+		modules[cmd].raw = raw;
+		modules[cmd].paramparams = paramparams;
+		modules[cmd].paramstringparam = paramstringparam;
+		return modules[cmd].exec();
 	}
 
 	chanMsg("Unknown command.");
@@ -285,6 +376,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 // =============================================
 
 function reload() {
+	unloadModules();
 	log("info", "reloading configuration...");
 	delete require.cache[require.resolve('./qBot')];
 	c = require('./qBot');
@@ -299,6 +391,17 @@ function reload() {
 			if(c.server.chans.indexOf(el) == -1) client.part(el, 'I shall not be here.');
 		});
 	});
+
+	setClientInfo();
+}
+
+function unloadModules() {
+	for(mod in modules) {
+		if(modules[mod].stop != null) modules[mod].stop();
+	}
+	for(var i = 0; i < c.modules.length; i++) {
+		delete require.cache[require.resolve('./modules/'+c.modules[i])];
+	}
 }
 
 function loadModules() {
@@ -308,11 +411,70 @@ function loadModules() {
 			log("info", "loading module "+c.modules[i]+"...");
 			var mod = require('./modules/'+c.modules[i]);
 			modules[mod.command] = mod;
+			modules[mod.command].log = this.log = log;
+			modules[mod.command].error = this.error = error;
+			modules[mod.command].client = this.client = client;
+			modules[mod.command].db = this.db = db;
+			modules[mod.command].c = this.c = c;
 		}
 	}
 }
 
+function setClientInfo() {
+	if(c.client.pass != "") client.pass(c.client.pass);
+	client.nick(c.client.nick);
+	client.user(c.client.user, c.client.real);
+}
+
 // =============================================
+
+function colorize(msg) { // Thanks to maddin for this :3
+	var codes = {
+		bold: '\u0002',
+		reset: '\u000f',
+		underline: '\u001f',
+		reverse: '\u0016',
+
+		white: '\u000300',
+		black: '\u000301',
+		dark_blue: '\u000302',
+		dark_green: '\u000303',
+		light_red: '\u000304',
+		dark_red: '\u000305',
+		magenta: '\u000306',
+		orange: '\u000307',
+		yellow: '\u000308',
+		light_green: '\u000309',
+		cyan: '\u000310',
+		light_cyan: '\u000311',
+		light_blue: '\u000312',
+		light_magenta: '\u000313',
+		gray: '\u000314',
+		light_gray: '\u000315'
+	};
+
+	msg = msg.replace(/\{B\}/g, codes.bold);
+	msg = msg.replace(/\{R\}/g, codes.reset);
+	msg = msg.replace(/\{U\}/g, codes.underline);
+	msg = msg.replace(/\{REV\}/g, codes.reverse);
+	msg = msg.replace(/\{FF\}/g, codes.whies);
+	msg = msg.replace(/\{00\}/g, codes.black);
+	msg = msg.replace(/\{DB\}/g, codes.dark_blue);
+	msg = msg.replace(/\{DG\}/g, codes.dark_green);
+	msg = msg.replace(/\{LR\}/g, codes.light_red);
+	msg = msg.replace(/\{DR\}/g, codes.dark_red);
+	msg = msg.replace(/\{M\}/g, codes.magenta);
+	msg = msg.replace(/\{O\}/g, codes.orange);
+	msg = msg.replace(/\{Y\}/g, codes.yellow);
+	msg = msg.replace(/\{LG\}/g, codes.light_green);
+	msg = msg.replace(/\{C\}/g, codes.cyan);
+	msg = msg.replace(/\{LC\}/g, codes.light_cyan);
+	msg = msg.replace(/\{LB\}/g, codes.light_blue);
+	msg = msg.replace(/\{LM\}/g, codes.light_magenta);
+	msg = msg.replace(/\{G\}/g, codes.gray);
+	msg = msg.replace(/\{LG\}/g, codes.light_gray);
+	return msg;
+}
 
 function log(type, message) {
 	if(c.log) console.log("["+type+"] "+message);
@@ -336,4 +498,8 @@ Array.prototype.merge = function(arr) {
 	var b = this.concat(arr);
 	this.length = 0;
 	this.push.apply(this, b);
+}
+
+function insert(str, ins, pos) {
+	return [str.slice(0,pos), ins, str.slice(pos)].join('');
 }
