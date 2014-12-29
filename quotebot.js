@@ -365,6 +365,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		modules[cmd].owner = owner;
 		modules[cmd].pm = pm;
 		modules[cmd].raw = raw;
+		modules[cmd].stringparam = stringparam;
 		modules[cmd].paramparams = paramparams;
 		modules[cmd].paramstringparam = paramstringparam;
 		return modules[cmd].exec();
