@@ -429,51 +429,34 @@ function setClientInfo() {
 
 // =============================================
 
-function colorize(msg) { // Thanks to maddin for this :3
+function colorize (msg) {
 	var codes = {
-		bold: '\u0002',
-		reset: '\u000f',
-		underline: '\u001f',
-		reverse: '\u0016',
+		'B':    '\u0002',
+		'R':    '\u000f',
+		'U':    '\u001f',
+		'REV':  '\u0016',
 
-		white: '\u000300',
-		black: '\u000301',
-		dark_blue: '\u000302',
-		dark_green: '\u000303',
-		light_red: '\u000304',
-		dark_red: '\u000305',
-		magenta: '\u000306',
-		orange: '\u000307',
-		yellow: '\u000308',
-		light_green: '\u000309',
-		cyan: '\u000310',
-		light_cyan: '\u000311',
-		light_blue: '\u000312',
-		light_magenta: '\u000313',
-		gray: '\u000314',
-		light_gray: '\u000315'
+		'FF':   '\u000300',
+		'00':   '\u000301',
+		'DB':   '\u000302',
+		'DG':   '\u000303',
+		'LR':   '\u000304',
+		'DR':   '\u000305',
+		'M':    '\u000306',
+		'O':    '\u000307',
+		'Y':    '\u000308',
+		'LG':   '\u000309',
+		'C':    '\u000310',
+		'LC':   '\u000311',
+		'LB':   '\u000312',
+		'LM':   '\u000313',
+		'G':    '\u000314',
+		'LG':   '\u000315'
 	};
 
-	msg = msg.replace(/\{B\}/g, codes.bold);
-	msg = msg.replace(/\{R\}/g, codes.reset);
-	msg = msg.replace(/\{U\}/g, codes.underline);
-	msg = msg.replace(/\{REV\}/g, codes.reverse);
-	msg = msg.replace(/\{FF\}/g, codes.whies);
-	msg = msg.replace(/\{00\}/g, codes.black);
-	msg = msg.replace(/\{DB\}/g, codes.dark_blue);
-	msg = msg.replace(/\{DG\}/g, codes.dark_green);
-	msg = msg.replace(/\{LR\}/g, codes.light_red);
-	msg = msg.replace(/\{DR\}/g, codes.dark_red);
-	msg = msg.replace(/\{M\}/g, codes.magenta);
-	msg = msg.replace(/\{O\}/g, codes.orange);
-	msg = msg.replace(/\{Y\}/g, codes.yellow);
-	msg = msg.replace(/\{LG\}/g, codes.light_green);
-	msg = msg.replace(/\{C\}/g, codes.cyan);
-	msg = msg.replace(/\{LC\}/g, codes.light_cyan);
-	msg = msg.replace(/\{LB\}/g, codes.light_blue);
-	msg = msg.replace(/\{LM\}/g, codes.light_magenta);
-	msg = msg.replace(/\{G\}/g, codes.gray);
-	msg = msg.replace(/\{LG\}/g, codes.light_gray);
+	for (code in codes) {
+		msg = msg.replace(new RegExp("\\{" + code + "\\}", "g"), codes[code]);
+	}
 	return msg;
 }
 
