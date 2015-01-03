@@ -208,7 +208,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 			return;
 		case "info":
 		case "about":
-			return userMsg("I'm quotebot, made by pupskuchen\nvisit <link> for more information");
+			return userMsg("I'm quotebot, made by pupskuchen\nvisit https://github.com/Pupskuchen/quotebot for more information");
 		case "modules":
 			if(c.modules.length > 0) return chanMsg("currently running modules: "+c.modules.join(", "));
 			else return chanMsg("no mods loaded");
