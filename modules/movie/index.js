@@ -24,8 +24,8 @@ exports.add = function (title, user, callback) {
     if(title.length < 3) {
         return callback(true);
     }
-		
-		insert = function (error, movie) {
+
+    insert = function (error, movie) {
         if (error || !movie) {
             return callback(error || true);
         }
@@ -44,11 +44,11 @@ exports.add = function (title, user, callback) {
                 $imdbRating:    movie.imdb.rating,
             }, callback(false, movie.title));
         });
-		}
+    }
 
-		var imdbpatt = new RegExp("tt[0-9]{7}");
-		
-		if(imdbpatt.test(title)) omdb.get({ imdb: title }, true, insert);
+    var imdbpatt = new RegExp("tt[0-9]{7}");
+
+    if(imdbpatt.test(title)) omdb.get({ imdb: title }, true, insert);
     else omdb.get({ title: title }, true, insert);
 };
 
