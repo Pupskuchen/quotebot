@@ -102,9 +102,7 @@ var cmds = {
 	"add": {desc: {params: "<quote>|long", desc: "add quote $quote or quote with multiple lines", needed: "allowed"}},
 	"del": {desc: {params: "<id>", desc: "delete quote $id", needed: "owner"}},
 	"reload": {desc: {params: "", desc: "reload configuration", needed: "owner"}},
-	"quit": {desc: {params: "[<msg>]", desc: "quit (with msg as quitmsg, if given)", needed: "owner"}},
-	"tag": {desc: {params: "<quote|user> <tag>", desc: "tag a quote or user"}, needed: "allowed"},
-	"deltag": {desc: {params: "<quote|user> <tag>", desc: "remove a tag of a quote or user"}, needed: "owner"}
+	"quit": {desc: {params: "[<msg>]", desc: "quit (with msg as quitmsg, if given)", needed: "owner"}}
 };
 var longquotes = {};
 
