@@ -226,19 +226,6 @@ function execCommand(chan, user, cmd, allowed, owner) {
 				d.finalize();
 			});
 			return;
-		case "tag":
-			return chanMsg("this is WIP");
-			chanMsg(""+params);
-			if(params.length < 2) return paramError(cmds.tag.desc.params);
-			var d, r = new RegExp(/[0-9]+/);
-			if(!isNaN(params[0]) && r.test(params[0])) {
-				
-			} else {
-			
-			}
-			return;
-		case "deltag":
-			return chanMsg("this is WIP");
 		case "count":
 			if(params.length > 0 && params[0] == "users") return chanMsg("I have "+c.allowed.length+" allowed user"+(c.allowed.length === 1 ? "" : "s")+"."+(c.allowbyaccount ? " But any logged in user can create quotes." : ""));
 			db.serialize(function() {
@@ -255,14 +242,24 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		case "find":
 			if(stringparam.length < 3) return paramError("find <string> (string must at least have 3 characters)");
 			db.serialize(function() {
-				db.all("SELECT rowid AS id, quote, user FROM quotes WHERE quote LIKE ?1 OR quote LIKE ?2 OR quote LIKE ?3 OR quote = ?4 OR \
-								user LIKE ?1 OR user LIKE ?2 OR user LIKE ?3 OR user = ?4 LIMIT 15", {
+				db.all("SELECT rowid AS id, quote, user FROM quotes WHERE quote LIKE ?1 OR quote LIKE ?2 OR quote LIKE ?3 OR quote = ?4", {
 						1: "%"+stringparam+"%",
 						2: "%"+stringparam,
 						3: stringparam+"%",
 						4: stringparam
 					}, function(err, rows) {
-						if(rows.length < 1) return chanMsg("nothing found");
+						if(!rows || rows.length < 1) return chanMsg("nothing found");
+						if(rows.length == 1) {
+							var el = rows[0];
+							el.quote = el.quote.split("\n");
+							chanMsg("#"+el.id+" (by "+el.user+"): \u00ab "+(el.quote.length > 30 ? el.quote.join(" | ").substr(0,30)+"..." : el.quote.join(" | "))+" \u00bb", true);
+							return;
+						}
+						var ids = [];
+						rows.forEach(function(el) {
+							ids.push(el.id);
+						});
+						chanMsg(ids.length+" quotes matching your search pattern: "+ids.join(", "));
 						userMsg("I found "+rows.length+" quote"+(rows.length == 1 ? "" : "s")+" matching your pattern.");
 						rows.forEach(function(el, i, arr) {
 							el.quote = el.quote.split("\n");
@@ -337,22 +334,6 @@ function execCommand(chan, user, cmd, allowed, owner) {
 	}
 
 	if(cmd in modules) {
-/*		modules[cmd].info = {
-			"chanMsg": chanMsg,
-			"permissionError": permissionError,
-			"paramError": paramError,
-			"userMsg": userMsg,
-			"chan": chan,
-			"user": user,
-			"nick": nick,
-			"params": params,
-			"allowed": allowed,
-			"owner": owner,
-			"pm": pm,
-			"raw": raw,
-			"paramparams": paramparams,
-			"paramstringparam": paramstringparam
-		};*/
 		modules[cmd].chanMsg = chanMsg;
 		modules[cmd].permissionError = permissionError;
 		modules[cmd].paramError = paramError;
@@ -417,6 +398,7 @@ function loadModules() {
 			modules[mod.command].client = this.client = client;
 			modules[mod.command].db = this.db = db;
 			modules[mod.command].c = this.c = c;
+			modules[mod.command].insert = this.insert = insert;
 		}
 	}
 }
