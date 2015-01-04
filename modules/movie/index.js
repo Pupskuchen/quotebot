@@ -1,15 +1,16 @@
 var DATABASE = 'movies.db';
 
+var fs      = require('fs'), dbexists = fs.existsSync(DATABASE) ? true : false;
 var util    = require('util'),
     sqlite  = require('sqlite3'),
     moment  = require('moment'),
     omdb    = require('omdb'),
-    fs      = require('fs'),
     db      = new sqlite.Database(DATABASE);
 
 require('moment-duration-format');
 
-if (!fs.existsSync(DATABASE)) {
+if (!dbexists) {
+		console.log("creating db");
     db.serialize(function() {
         db.run("CREATE TABLE IF NOT EXISTS movies (user VARCHAR(32), added BIGINT, title VARCHAR(32), year SMALLINT, runtime INT, type VARCHAR(32), genres VARCHAR(128), imdb_id VARCHAR(64), imdb_rating SMALLINT, user_rating SMALLINT)");
         db.run("CREATE TABLE IF NOT EXISTS votes (user VARCHAR(32), added BIGINT, movie INT, rating SMALLINT)");
@@ -24,8 +25,8 @@ exports.add = function (title, user, callback) {
     if(title.length < 3) {
         return callback(true);
     }
-
-    omdb.get({ title: title }, true, function (error, movie) {
+		
+		insert = function (error, movie) {
         if (error || !movie) {
             return callback(error || true);
         }
@@ -42,9 +43,14 @@ exports.add = function (title, user, callback) {
                 $genres:        movie.genres.join(", "),
                 $imdbId:        movie.imdb.id,
                 $imdbRating:    movie.imdb.rating,
-            }, callback);
+            }, callback(false, movie.title));
         });
-    });
+		}
+
+		var imdbpatt = new RegExp("tt[0-9]{7}");
+		
+		if(imdbpatt.test(title)) omdb.get({ imdb: title }, true, insert);
+    else omdb.get({ title: title }, true, insert);
 };
 
 exports.list = function (page, callback) {

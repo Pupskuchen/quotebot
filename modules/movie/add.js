@@ -11,13 +11,13 @@ exports.desc = {
 exports.exec = function () {
     var title = raw.substring(this.command.length+1);
 
-    movies.add(title, nick, function (error) {
+    movies.add(title, nick, function (error, movietitle) {
         if (error) {
             console.log(error);
             return chanMsg("Sorry, but I couldn't add your movie :(");
         }
 
-        return chanMsg("Movie '" + title + "' successfully added!");
+        return chanMsg("Movie '" +movietitle + "' successfully added!");
     });
 };
 
