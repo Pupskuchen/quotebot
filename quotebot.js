@@ -359,7 +359,12 @@ function reload() {
 	unloadModules();
 	log("info", "reloading configuration...");
 	delete require.cache[require.resolve('./qBot')];
-	c = require('./qBot');
+	var newC = fs.readFileSync('./qBot.json', 'utf8');
+	try {
+		c = JSON.parse(newC);
+	} catch (e) {
+		chanMsg("you have an error in your config, falling back to previous config");
+	}
 	loadModules();
 
 	client.me.whois(function(err, data) {
