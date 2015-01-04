@@ -10,7 +10,6 @@ var util    = require('util'),
 require('moment-duration-format');
 
 if (!dbexists) {
-		console.log("creating db");
     db.serialize(function() {
         db.run("CREATE TABLE IF NOT EXISTS movies (user VARCHAR(32), added BIGINT, title VARCHAR(32), year SMALLINT, runtime INT, type VARCHAR(32), genres VARCHAR(128), imdb_id VARCHAR(64), imdb_rating SMALLINT, user_rating SMALLINT)");
         db.run("CREATE TABLE IF NOT EXISTS votes (user VARCHAR(32), added BIGINT, movie INT, rating SMALLINT)");
