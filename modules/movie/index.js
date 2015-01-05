@@ -63,7 +63,7 @@ exports.list = function (page, callback) {
         offset = (page - 1) * limit;
 
     db.serialize(function() {
-        db.all("SELECT *, rowid as id FROM movies ORDER BY user_rating, imdb_rating DESC LIMIT " + offset + ", " + limit, callback)
+        db.all("SELECT *, rowid as id FROM movies ORDER BY user_rating DESC, imdb_rating DESC LIMIT " + offset + ", " + limit, callback)
     });
 };
 
