@@ -85,6 +85,7 @@ client.on('quit', function(e) {
 // =============================================
 
 function parseCommand(chan, user, msg) {
+	if(msg.replace(/\s/g) === "") return;
 	user.whois(function(err, data) {
 		var reggedUser = data.account != null ? true : false;
 		reggedUser = reggedUser && (c.allowbyaccount ? true : (c.allowed.indexOf(data.account) != -1));
@@ -350,7 +351,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		return modules[cmd].exec();
 	}
 
-	chanMsg("Unknown command.");
+	//chanMsg("Unknown command."); <- Do we want this?
 }
 
 // =============================================
