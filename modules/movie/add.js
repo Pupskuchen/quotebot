@@ -13,7 +13,7 @@ exports.exec = function () {
 
     movies.add(title, nick, function (error, movietitle) {
         if (error) {
-            console.log(error);
+            log("error", error);
             return chanMsg("Sorry, but I couldn't add your movie :(");
         }
 

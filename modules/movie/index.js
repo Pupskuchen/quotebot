@@ -11,7 +11,7 @@ require('moment-duration-format');
 
 if (!dbexists) {
     db.serialize(function() {
-        db.run("CREATE TABLE IF NOT EXISTS movies (user VARCHAR(32), added BIGINT, title VARCHAR(32), year SMALLINT, runtime INT, type VARCHAR(32), genres VARCHAR(128), imdb_id VARCHAR(64), imdb_rating SMALLINT, user_rating SMALLINT)");
+        db.run("CREATE TABLE IF NOT EXISTS movies (user VARCHAR(32), added BIGINT, title VARCHAR(32) UNIQUE, year SMALLINT, runtime INT, type VARCHAR(32), genres VARCHAR(128), imdb_id VARCHAR(64), imdb_rating SMALLINT, user_rating SMALLINT)");
         db.run("CREATE TABLE IF NOT EXISTS votes (user VARCHAR(32), added BIGINT, movie INT, rating SMALLINT)");
     });
 }
@@ -25,11 +25,16 @@ exports.add = function (title, user, callback) {
         return callback(true);
     }
 
-    insert = function (error, movie) {
+    var imdb_title = null;
+    var handle = function(error) {
+        return error ? callback(error) : callback(false, imdb_title);
+    };
+
+    var insert = function (error, movie) {
         if (error || !movie) {
             return callback(error || true);
         }
-
+        imdb_title = movie.title;
         db.serialize(function() {
             db.run("INSERT INTO movies (user, added, title, year, runtime, type, genres, imdb_id, imdb_rating) \
                 VALUES ($user, $added, $title, $year, $runtime, $type, $genres, $imdbId, $imdbRating)", {
@@ -42,9 +47,9 @@ exports.add = function (title, user, callback) {
                 $genres:        movie.genres.join(", "),
                 $imdbId:        movie.imdb.id,
                 $imdbRating:    movie.imdb.rating,
-            }, callback(false, movie.title));
+            }, handle);
         });
-    }
+    };
 
     var imdbpatt = new RegExp("tt[0-9]{7}");
 
