@@ -142,7 +142,14 @@ exports.formatImdbUrl = function (imdbId) {
     return "http://www.imdb.com/title/" + imdbId;
 };
 
-exports.format = function (movie) {
+exports.format = function (movie, short) {
+    if(short) {
+        return util.format("{B}%s:{R} {B}IMDB-Rating:{R} %d, {B}IRC-Rating:{R} %d - %s",
+            movie.title,
+            movie.imdb_rating || 0.0, movie.user_rating || 0.0,
+            this.formatImdbUrl(movie.imdb_id)
+        );
+    }
     return util.format("{B}%s:{R} {B}Genres:{R} %s, {B}Runtime:{R} %s, {B}Released:{R} %d, {B}IMDB-Rating:{R} %d, {B}IRC-Rating:{R} %d (added by %s, %s) - %s",
         movie.title,
         movie.genres,

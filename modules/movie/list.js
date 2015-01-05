@@ -19,7 +19,7 @@ exports.exec = function () {
         userMsg("{B}Movies in our database, ordered by rating:{R}");
 
         rows.forEach(function (movie) {
-            userMsg(" - " + movies.format(movie));
+            userMsg(" - " + movies.format(movie, true));
         });
     });
 };
