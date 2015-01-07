@@ -19,7 +19,7 @@ exports.exec = function() {
 
     var method = rows.length < 3 ? chanMsg : userMsg;
 
-    chanMsg("I found {B}"+rows.length+"{R} entries matching your query");
+    chanMsg("I found "+rows.length+" entries matching your query");
     rows.forEach(function (link) {
       method(links.format(link, true));
     });

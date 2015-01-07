@@ -48,6 +48,7 @@ Anyway I've added the feature to add modules to make it more dynamic and now you
 ```
 
 The configuration is pretty easy and self-explanatory.
+
 There are three steps of permission. First, a user who is not logged in. Second, a user who is logged in. And then there's the owner.
 The owner is always the first person in the ```allowed``` array. There's only one.
 
