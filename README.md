@@ -36,7 +36,8 @@ Anyway I've added the feature to add modules to make it more dynamic and now you
 
   "modules": [
     "time",
-    "say"
+    "say",
+    "movie"
   ],
 
   "allowbyaccount": true,
