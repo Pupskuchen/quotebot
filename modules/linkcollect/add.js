@@ -9,6 +9,7 @@ exports.desc = {
 };
 
 exports.exec = function() {
+  if(params.length < 1) return paramError("addlink <link> [<desc>]");
   var link = params[0];
   var desc = paramstringparam ? paramstringparam : "none";
 

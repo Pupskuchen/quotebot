@@ -52,7 +52,7 @@ Use ```allow_invalid_ssl``` to connect to irc networks/servers with invalid/self
 
 ```chans``` can be empty or left out if you don't want the bot to join any channel.
 
-````nickserv``` is optional. If nickserv is configured and ```nickserv.user``` is unset, it will use the client's nick as nickserv user.
+```nickserv``` is optional. If nickserv is configured and ```nickserv.user``` is unset, it will use the client's nick as nickserv user.
 
 You can define multiple command characters that the bot will check.
 
