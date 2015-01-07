@@ -8,8 +8,8 @@ var coffea = require('coffea'),
     db     = new sqlite.Database(DB);
 
 var stream,
-    modules  = {},
-    topMod = [];
+    modules = {},
+    topMod  = [];
 
 if(!exists)
 db.serialize(function() {

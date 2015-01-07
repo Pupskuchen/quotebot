@@ -139,6 +139,12 @@ exports.rate = exports.vote = function (movie, user, rating, callback) {
     });
 };
 
+exports.del = function (imdb, callback) {
+    db.serialize(function () {
+        db.run("DELETE FROM movies WHERE imdb_id = ?", imdb, callback)
+    });
+};
+
 exports.formatRuntime = function (runtime) {
     return moment.duration(parseInt(runtime), "minutes").format("h [hr(s)], m [min]");
 };

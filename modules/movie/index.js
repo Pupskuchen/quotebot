@@ -6,5 +6,6 @@ exports.components = [
   'find',
   'info',
   'list',
-  'rate'
+  'rate',
+  'del'
 ];
