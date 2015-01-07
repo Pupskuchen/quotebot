@@ -15,7 +15,7 @@
 		"real": "quoteBot",
 		"pass": "",
 		"nickserv": {
-			"user": "quoteBotUser"
+			"user": "quoteBotUser",
 			"pass": "supersecure"
 		}
 	},

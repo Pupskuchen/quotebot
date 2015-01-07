@@ -9,12 +9,12 @@ Anyway I've added the feature to add modules to make it more dynamic and now you
 ```json
 {
   "server": {
-    "host": "irc.example.com",
+    "host": "irc.thepups.net",
     "port": 6697,
     "ssl":  true,
-    "allow_invalid_ssl": false,
+    "allow_invalid_ssl": true,
     "chans": [
-      "#example"
+      "#neuland"
     ]
   },
 
@@ -24,7 +24,7 @@ Anyway I've added the feature to add modules to make it more dynamic and now you
     "real": "quoteBot",
     "pass": "",
     "nickserv": {
-      "user": "quoteBotUser"
+      "user": "quoteBotUser",
       "pass": "supersecure"
     }
   },
