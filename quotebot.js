@@ -1,15 +1,15 @@
 var DB = 'db/quotes.db';
 
 var coffea = require('coffea'),
-		sqlite = require('sqlite3'),
-		c 		 = require('./qBot'),
-		fs 		 = require('fs'),
-		exists = fs.existsSync(DB) ? true : false,
-		db 		 = new sqlite.Database(DB);
+    sqlite = require('sqlite3'),
+    c      = require('./qBot'),
+    fs     = require('fs'),
+    exists = fs.existsSync(DB) ? true : false,
+    db     = new sqlite.Database(DB);
 
 var stream,
-		modules  = {},
-		topMod = [];
+    modules  = {},
+    topMod = [];
 
 if(!exists)
 db.serialize(function() {
