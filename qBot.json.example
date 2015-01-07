@@ -1,30 +1,37 @@
 {
 	"server": {
-		"host": "some.irc.network",
+		"host": "irc.example.com",
 		"port": 6697,
 		"ssl":	true,
-		"sslconf": {
-			"allowSelfSigned": true
-		},
+		"allow_invalid_ssl": false,
 		"chans": [
-			"#foo"
+			"#example"
 		]
 	},
 
 	"client": {
 		"nick": "quoteBot",
-		"user": "QuotingBot",
-		"real": "pupskuchen's quoteBot",
-		"pass": ""
+		"user": "quoteBot",
+		"real": "quoteBot",
+		"pass": "",
+		"nickserv": {
+			"user": "quoteBotUser"
+			"pass": "supersecure"
+		}
 	},
 
+	"kick_autorejoin": true,
+
 	"log": true,
-	"commandchar": "!",
+	"commandchar": ["!"],
 
 	"modules": [
+		"time",
+		"say"
 	],
 
 	"allowbyaccount": true,
 	"allowed": [
+		"admin"
 	]
 }

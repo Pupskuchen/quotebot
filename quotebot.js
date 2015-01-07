@@ -1,14 +1,13 @@
 var DB = 'db/quotes.db';
 
-var coffea = require('coffea'),
-    sqlite = require('sqlite3'),
+var sqlite = require('sqlite3'),
     c      = require('./qBot'),
     fs     = require('fs'),
     exists = fs.existsSync(DB) ? true : false,
-    db     = new sqlite.Database(DB);
+    db     = new sqlite.Database(DB),
+    client = require('coffea')(prepareClient());
 
-var stream,
-    modules = {},
+var modules = {},
     topMod  = [];
 
 if(!exists)
@@ -20,45 +19,16 @@ log("info", "starting quotebot");
 loadModules();
 log("info", "connecting to "+c.server.host+":"+c.server.port+" using SSL: "+(c.server.ssl ? "YES" : "NO"))
 
-if(c.server.ssl) {
-	var tls = require('tls');
-	stream = tls.connect(c.server.port, c.server.host, {
-		rejectUnauthorized: !c.server.sslconf.allowSelfSigned
-	}, function() {
-		if(stream.authorized || stream.authorizationError === 'DEPTH_ZERO_SELF_SIGNED_CERT' || stream.authorizationError === 'CERT_HAS_EXPIRED' || stream.authorizationError === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
-			if(stream.authorizationError === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
-				log('ssl-info', 'server is using self signed certificate');
-			}
-			if(stream.authorizationError === 'CERT_HAS_EXPIRED') {
-				log('ssl-info', "connecting to server with expired certificate");
-			}
-		} else {
-			error('ssl-error', stream.authorizationError);
-		}
-	});
-} else {
-	var net = require('net');
-	stream = net.connect({
-		port: c.server.port,
-		host: c.server.host
-	});
-}
-
-var client = coffea(stream);
-
-setClientInfo();
-
 client.on('motd', function(motd) {
 	log("info", "connected to "+client.getServerInfo().servername);
-	if(c.client.nickserv != "") client.send("NickServ", "IDENTIFY "+c.client.nickserv);
-	if(c.server.chans.length > 0) {
+	if(c.server.chans && c.server.chans.length > 0) {
 		log('info', 'joining channel'+(c.server.chans.length > 1 ? 's' : '')+': '+c.server.chans);
 		client.join(c.server.chans);
 	}
 });
 
 client.on('kick', function(e) {
-	client.join(e.channel.getName());
+	if(c.kick_autorejoin) client.join(e.channel.getName());
 });
 
 client.on('message', function(e) {
@@ -428,7 +398,7 @@ function loadModules() {
 			modules[mod.command].insert = this.insert = insert;
 	};
 
-	if(c.modules.length > 0) {
+	if(c.modules && c.modules.length > 0) {
 		for(var i = 0; i < c.modules.length; i++) {
 			log("info", "loading module "+c.modules[i]+"...");
 			var path = './modules/'+c.modules[i];
@@ -452,6 +422,26 @@ function setClientInfo() {
 	if(c.client.pass != "") client.pass(c.client.pass);
 	client.nick(c.client.nick);
 	client.user(c.client.user, c.client.real);
+}
+
+function prepareClient() {
+	var conf = {
+		host: c.server.host,
+		port: c.server.port,
+		ssl: c.server.ssl,
+		nick: c.client.nick,
+		username: c.client.user,
+		realname: c.client.real,
+		pass: c.client.pass,
+		ssl_allow_invalid: c.server.allow_invalid_ssl
+	}
+	if(c.client.nickserv) {
+		conf.nickserv = {
+			username: c.client.nickserv.user ? c.client.nickserv.user : c.client.nick,
+			password: c.client.nickserv.pass
+		}
+	}
+	return conf;
 }
 
 // =============================================

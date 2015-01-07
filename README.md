@@ -9,14 +9,12 @@ Anyway I've added the feature to add modules to make it more dynamic and now you
 ```json
 {
   "server": {
-    "host": "irc.thepups.net",
+    "host": "irc.example.com",
     "port": 6697,
     "ssl":  true,
-    "sslconf": {
-      "allowSelfSigned": true
-    },
+    "allow_invalid_ssl": false,
     "chans": [
-      "#neuland"
+      "#example"
     ]
   },
 
@@ -25,29 +23,38 @@ Anyway I've added the feature to add modules to make it more dynamic and now you
     "user": "quoteBot",
     "real": "quoteBot",
     "pass": "",
-    "nickserv": ""
+    "nickserv": {
+      "user": "quoteBotUser"
+      "pass": "supersecure"
+    }
   },
 
+  "kick_autorejoin": true,
+
   "log": true,
-  "commandchar": ["."],
+  "commandchar": ["!"],
 
   "modules": [
     "time",
-    "uptime",
-    "movie",
-    "last",
-    "dns",
-    "linkcollect"
+    "say"
   ],
 
   "allowbyaccount": true,
   "allowed": [
-    "pkn"
+    "admin"
   ]
 }
 ```
 
 The configuration is pretty easy and self-explanatory.
+
+Use ```allow_invalid_ssl``` to connect to irc networks/servers with invalid/self-signed or expired ssl certificates.
+
+```chans``` can be empty or left out if you don't want the bot to join any channel.
+
+````nickserv``` is optional. If nickserv is configured and ```nickserv.user``` is unset, it will use the client's nick as nickserv user.
+
+You can define multiple command characters that the bot will check.
 
 There are three steps of permission. First, a user who is not logged in. Second, a user who is logged in. And then there's the owner.
 The owner is always the first person in the ```allowed``` array. There's only one.
