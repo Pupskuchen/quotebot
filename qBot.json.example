@@ -28,7 +28,7 @@
 	"modules": [
 		"time",
 		"say",
-    "movie"
+		"movie"
 	],
 
 	"allowbyaccount": true,
