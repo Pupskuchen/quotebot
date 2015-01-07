@@ -88,6 +88,7 @@ var longquotes = {};
 
 function execCommand(chan, user, cmd, allowed, owner) {
 	nick = user.getNick();
+	cmd = cmd.replace(/^\s+|\s+$/g,'');
 	raw = cmd;
 	cmd = cmd.split(" ");
 	params = cmd.splice(1, cmd.length);
