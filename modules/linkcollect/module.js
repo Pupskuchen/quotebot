@@ -18,7 +18,7 @@ exports.validURL = function (url) {
 
 exports.format = function (link, short) {
   var d = new Date(link.added*1000);
-  return "{B}#"+link.id+"{R}: "+link.url+" | desc: "+link.desc+(short ? "" : " | added "+d.toUTCString()+" by "+link.user);
+  return "#"+link.id+": "+link.url+" | desc: "+link.desc+(short ? "" : " | added "+d.toUTCString()+" by "+link.user);
 };
 
 exports.add = function (nick, link, desc, callback) {

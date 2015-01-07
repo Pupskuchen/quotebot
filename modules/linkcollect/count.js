@@ -11,6 +11,6 @@ exports.desc = {
 exports.exec = function() {
   links.count(function (err, links) {
     if(err) return chanMsg("something went wrong.");
-    return chanMsg("There are {B}"+links.amount+"{R} links in the database.");
+    return chanMsg("There are "+links.amount+" links in the database.");
   });
 };
