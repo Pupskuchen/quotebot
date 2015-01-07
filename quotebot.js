@@ -1,9 +1,15 @@
-var coffea = require('coffea'), sqlite = require('sqlite3'), c = require('./qBot');
-var fs = require('fs');
-var exists = fs.existsSync('quotes.db') ? true : false;
-var db = new sqlite.Database('quotes.db');
-var stream;
-var modules = {};
+var DB = 'db/quotes.db';
+
+var coffea = require('coffea'),
+		sqlite = require('sqlite3'),
+		c 		 = require('./qBot'),
+		fs 		 = require('fs'),
+		exists = fs.existsSync(DB) ? true : false,
+		db 		 = new sqlite.Database(DB);
+
+var stream,
+		modules  = {},
+		topMod = [];
 
 if(!exists)
 db.serialize(function() {
@@ -45,8 +51,10 @@ setClientInfo();
 client.on('motd', function(motd) {
 	log("info", "connected to "+client.getServerInfo().servername);
 	if(c.client.nickserv != "") client.send("NickServ", "IDENTIFY "+c.client.nickserv);
-	log('info', 'joining channel'+(c.server.chans.length > 1 ? 's' : '')+': '+c.server.chans);
-	client.join(c.server.chans);
+	if(c.server.chans.length > 0) {
+		log('info', 'joining channel'+(c.server.chans.length > 1 ? 's' : '')+': '+c.server.chans);
+		client.join(c.server.chans);
+	}
 });
 
 client.on('kick', function(e) {
@@ -85,7 +93,8 @@ client.on('quit', function(e) {
 // =============================================
 
 function parseCommand(chan, user, msg) {
-	if(msg.replace(/\s/g) === "") return;
+	var re = new RegExp("[\\s\\"+c.commandchar.join('\\')+"]", "g");
+	if(msg.replace(re, "") === "") return;
 	user.whois(function(err, data) {
 		var reggedUser = data.account != null ? true : false;
 		reggedUser = reggedUser && (c.allowbyaccount ? true : (c.allowed.indexOf(data.account) != -1));
@@ -134,7 +143,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 				else if(gcmds[l].desc.needed == "owner" && owner) userMsg(l+""+(gcmds[l].desc.params != "" ? " "+gcmds[l].desc.params+" " : "")+"- "+gcmds[l].desc.desc);
 				else permissionError();
 			} else {
-				userMsg(l+" "+(gcmds[l].desc.params ? gcmds[l].desc.params+" " : "")+"- "+gcmds[l].desc.desc);
+				userMsg(l+(gcmds[l].desc.params ? gcmds[l].desc.params : "")+" - "+gcmds[l].desc.desc);
 			}
 			return true;
 		}
@@ -297,10 +306,10 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		case "del":
 			if(allowed && owner) {
 				var r = new RegExp(/[0-9]+-[0-9]+/);
-				if(params.length < 1 && isNaN(params[0]) && !r.test(params[0])) return paramError("del <id|id-id>");
+				if(params.length < 1 || (isNaN(params[0]) && !r.test(params[0]))) return paramError("del <id|id-id>");
 				db.serialize(function() {
 					var s, par = [];
-					if(params.length > 0 && r.test(params[0])) {
+					if(r.test(params[0])) {
 						var p = params[0].split("-");
 						if(p[0] < p[1]) {
 							s = "DELETE FROM quotes WHERE rowid >= ? AND rowid <= ?";
@@ -333,6 +342,9 @@ function execCommand(chan, user, cmd, allowed, owner) {
 	}
 
 	if(cmd in modules) {
+		if(modules[cmd].desc.needed === "owner" && (!owner || !allowed)) return permissionError();
+		else if(modules[cmd].desc.needed === "allowed" && (!allowed && !owner)) return permissionError();
+
 		modules[cmd].chanMsg = chanMsg;
 		modules[cmd].permissionError = permissionError;
 		modules[cmd].paramError = paramError;
@@ -351,7 +363,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		return modules[cmd].exec();
 	}
 
-	//chanMsg("Unknown command."); <- Do we want this?
+	chanMsg("Unknown command."); // <- Do we want this?
 }
 
 // =============================================
@@ -360,21 +372,20 @@ function reload() {
 	unloadModules();
 	log("info", "reloading configuration...");
 	delete require.cache[require.resolve('./qBot')];
-	var newC = fs.readFileSync('./qBot.json', 'utf8');
 	try {
-		c = JSON.parse(newC);
+		c = JSON.parse(fs.readFileSync('./qBot.json', 'utf8'));
 	} catch (e) {
 		chanMsg("you have an error in your config, falling back to previous config");
 	}
 	loadModules();
 
-	client.me.whois(function(err, data) {
-		var bchans = Object.keys(data.channels);
-		c.server.chans.forEach(function(el, i, arr) {
-			if(bchans.indexOf(el) == -1) client.join(el);
-		});
-		bchans.forEach(function(el,i,arr) {
+	client.me.whois(function (err, data) {
+		var bchans = data.channels ? Object.keys(data.channels) : [];
+		bchans.forEach(function (el) {
 			if(c.server.chans.indexOf(el) == -1) client.part(el, 'I shall not be here.');
+		});
+		c.server.chans.forEach(function (el) {
+			if(bchans.indexOf(el) == -1) client.join(el);
 		});
 	});
 
@@ -385,24 +396,54 @@ function unloadModules() {
 	for(mod in modules) {
 		if(modules[mod].stop != null) modules[mod].stop();
 	}
-	for(var i = 0; i < c.modules.length; i++) {
-		delete require.cache[require.resolve('./modules/'+c.modules[i])];
-	}
+
+	var unload = function (target) {
+		delete require.cache[require.resolve(target)];
+	};
+
+	Object.keys(modules).forEach(function (mod) {
+		unload(modules[mod].modpath);
+	});
+	topMod.forEach(function (mod) {
+		unload(mod[0]);
+		if(mod[1])
+		mod[1].forEach(function (subdep) {
+			unload(mod[0]+"/"+subdep);
+		});
+	});
 }
 
 function loadModules() {
 	modules = {};
-	if(c.modules.length > 0) {
-		for(var i = 0; i < c.modules.length; i++) {
-			log("info", "loading module "+c.modules[i]+"...");
-			var mod = require('./modules/'+c.modules[i]);
+
+	var prepareMod = function (path) {
+			mod = require(path);
 			modules[mod.command] = mod;
+			modules[mod.command].modpath = path;
 			modules[mod.command].log = this.log = log;
 			modules[mod.command].error = this.error = error;
 			modules[mod.command].client = this.client = client;
 			modules[mod.command].db = this.db = db;
 			modules[mod.command].c = this.c = c;
 			modules[mod.command].insert = this.insert = insert;
+	};
+
+	if(c.modules.length > 0) {
+		for(var i = 0; i < c.modules.length; i++) {
+			log("info", "loading module "+c.modules[i]+"...");
+			var path = './modules/'+c.modules[i];
+			if(fs.existsSync(path) && fs.lstatSync(path).isDirectory()) {
+				var req = require(path);
+				topMod.push([path, req.subdeps ? req.subdeps : null]);
+				var submod = req.components;
+				if(!submod || submod.length < 1) continue;
+				submod.forEach(function (mod) {
+					log("info", "- loading "+c.modules[i]+"/"+mod+"...")
+					prepareMod(path+'/'+mod);
+				});
+				continue;
+			}
+			prepareMod(path);
 		}
 	}
 }
@@ -453,6 +494,10 @@ function error(type, message) {
 	console.error("["+type+"] "+message);
 }
 
+function insert(str, ins, pos) {
+	return [str.slice(0,pos), ins, str.slice(pos)].join('');
+}
+
 Array.prototype.equals = function(arr) {
 	if(!arr) return false;
 	if(this.length != arr.length) return false;
@@ -468,8 +513,4 @@ Array.prototype.merge = function(arr) {
 	var b = this.concat(arr);
 	this.length = 0;
 	this.push.apply(this, b);
-}
-
-function insert(str, ins, pos) {
-	return [str.slice(0,pos), ins, str.slice(pos)].join('');
 }

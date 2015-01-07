@@ -1,11 +1,11 @@
-var movies = require('./index.js');
+var movies = require('./module');
 
-exports.command = "ratemovie"; // the command
+exports.command = "ratemovie";
 
 exports.desc = {
-    params: "<string> <integer:0-10>", // parameters (shown in help)
-    desc: "rates a movie", // command description (shown in help)
-    needed: "allowed" // needed permissions, can be an empty string, "allowed" or "owner" (used for help)
+    params: "<string> <integer:0-10>",
+    desc: "rates a movie",
+    needed: "allowed"
 };
 
 exports.exec = function () {

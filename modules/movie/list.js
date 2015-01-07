@@ -1,11 +1,11 @@
-var movies = require('./index.js');
+var movies = require('./module');
 
-exports.command = "listmovies"; // the command
+exports.command = "listmovies";
 
 exports.desc = {
-    params: "", // parameters (shown in help)
-    desc: "lists all movies in the database", // command description (shown in help)
-    needed: "allowed" // needed permissions, can be an empty string, "allowed" or "owner" (used for help)
+    params: "",
+    desc: "lists all movies in the database",
+    needed: "allowed"
 };
 
 exports.exec = function () {

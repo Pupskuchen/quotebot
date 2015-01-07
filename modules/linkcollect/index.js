@@ -4,7 +4,7 @@ exports.subdeps = [
 exports.components = [
   'add',
   'find',
-  'info',
-  'list',
-  'rate'
+  'link',
+  'count',
+  'del'
 ];
