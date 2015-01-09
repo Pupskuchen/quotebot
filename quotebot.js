@@ -7,8 +7,9 @@ var sqlite = require('sqlite3'),
     db     = new sqlite.Database(DB),
     client = require('coffea')(prepareClient());
 
-var modules = {},
-    topMod  = [];
+var modules  = {},
+    topMod   = [],
+    eModules = [];
 
 if(!exists)
 db.serialize(function() {
@@ -382,21 +383,37 @@ function unloadModules() {
 			unload(mod[0]+"/"+subdep);
 		});
 	});
+	eModules.forEach(function (mod) {
+		if(mod.kill) mod.kill();
+		unload(mod.path);
+	});
 }
 
 function loadModules() {
-	modules = {};
+	modules  = {};
+	topMod   = [];
+	eModules = [];
+
+	var addVars = function (mod) {
+		mod.log = this.log = log;
+		mod.error = this.error = error;
+		mod.client = this.client = client;
+		mod.db = this.db = db;
+		mod.c = this.c = c;
+		mod.insert = this.insert = insert;
+	};
 
 	var prepareMod = function (path) {
-			mod = require(path);
-			modules[mod.command] = mod;
-			modules[mod.command].modpath = path;
-			modules[mod.command].log = this.log = log;
-			modules[mod.command].error = this.error = error;
-			modules[mod.command].client = this.client = client;
-			modules[mod.command].db = this.db = db;
-			modules[mod.command].c = this.c = c;
-			modules[mod.command].insert = this.insert = insert;
+			var mod = require(path);
+			if(mod.command) {
+				modules[mod.command] = mod;
+				modules[mod.command].modpath = path;
+				addVars(modules[mod.command]);
+			} else {
+				mod.path = path;
+				addVars(mod);
+				eModules.push(mod);
+			}
 	};
 
 	if(c.modules && c.modules.length > 0) {
