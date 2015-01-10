@@ -134,6 +134,6 @@ c // the config;
 Small modules also get attributes when their command is executed. See quotebot.js to see which, most of them are self-explanatory. If you need help, contact me (see support).
 You could need these when coding your module/plugin.
 
-###### Support
+## Support
 
 If you need help, feel free to join us on IRC. Details are in the example config.
