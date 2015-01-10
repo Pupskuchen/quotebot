@@ -12,7 +12,7 @@ exports.desc = {
 exports.exec = function() {
 
 	var paramnick = params[0];
-	var amount = paramstringparam;
+	var amount = Math.round(parseInt(paramstringparam));
 
 	if (isItValid(paramnick, amount)) {
 		
@@ -35,13 +35,16 @@ exports.exec = function() {
 					}
 					else {
 					
-						if (amount < 0) return chanMsg("You cant give negative amounts of tokens!");
-						else if (amount > data.tokens) return chanMsg("You do not have enough tokens for that. You have "+ data.tokens +" token"+((data.tokens == 1)? "":"s") +".");
+						var tokens = Math.round(data.tokens);
+					
+						if (paramnick === nick) return chanMsg("You cant give yourself tokens!");
+						else if (amount <= 0) return chanMsg("You cant give negative/zero amounts of tokens!");
+						else if (amount > tokens) return chanMsg("You do not have enough tokens for that. You have "+ tokens +" token"+((tokens == 1)? "":"s") +".");
 					
 						cbot.addTokens(paramnick, amount);
 						cbot.addTokens(nick, -1*amount);
 					
-						return chanMsg("I gave "+amount+" token"+((amount == 1)? "":"s") +" to "+ paramnick +". ("+ (data.tokens-amount) +" left!)");
+						return chanMsg("I gave "+amount+" token"+((amount == 1)? "":"s") +" to "+ paramnick +". ("+ (tokens-amount) +" left!)");
 			}
 			
 			});
