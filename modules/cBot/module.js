@@ -9,7 +9,8 @@ var 	botWhitelist,
 		tokenTimeout = 60,
 		coffeePrice = 3,
 		chocoPrice = 1,
-		matePrice = 2;
+		matePrice = 2,
+		chatLineAmount = 10;
 
 
 
@@ -56,7 +57,7 @@ client.on('message', function(e) {
 			
 			if (Math.round(new Date()/1000) >= (lastStamp + tokenTimeout)) {
 				
-				if ((chatLines+1) >= 10) {
+				if ((chatLines+1) >= chatLineAmount) {
 				
 					exports.changeTokens(thisnick, (tokens+1), true);
 				
@@ -180,3 +181,4 @@ exports.db = db;
 exports.coffeePrice = coffeePrice;
 exports.chocoPrice = chocoPrice;
 exports.matePrice = matePrice;
+exports.chatLineAmount = chatLineAmount;
