@@ -24,7 +24,8 @@ exports.exec = function() {
 			}
 			else {
 				returny = data.tokens;
-				return chanMsg (paramnick + " has " + returny + " token"+((returny == 1)? "":"s") +"!");
+				var chatLineStat = data.chatlines;
+				return chanMsg (paramnick + " has " + returny + " token"+((returny == 1)? "":"s") +"! "+ paramnick +" is " + (cbot.chatLineAmount - chatLineStat) + " lines away from their next token.");
 			}
 			
 			});
@@ -42,7 +43,8 @@ exports.exec = function() {
 					cbot.getStats(nick, function(err, data) {
 					
 						returny = data.tokens;
-						return chanMsg ("You have " + returny + " token"+((returny == 1)? "":"s") +"!");
+						var chatLineStat = data.chatlines;
+						return chanMsg ("You have " + returny + " token"+((returny == 1)? "":"s") +"! You are " + (cbot.chatLineAmount - chatLineStat) + " lines away from your next token.");
 						
 					});
 				});
@@ -50,9 +52,12 @@ exports.exec = function() {
 			else {
 					
 				returny = data.tokens;
-				return chanMsg ("You have " + returny + " token"+((returny == 1)? "":"s") +"!");
+				var chatLineStat = data.chatlines;
+				return chanMsg ("You have " + returny + " token"+((returny == 1)? "":"s") +"! You are " +(cbot.chatLineAmount - chatLineStat) + " lines away from your next token.");
 			}
 			
 			});
 	}
 };
+
+// " (typeof usr === "undefined" ? "You" : usr) + " is "+ (chatLineStat - cbot.chatLineAmount) + "lines away from his next token"

@@ -73,6 +73,7 @@ function returnDatShit(returny, usr) {
 	var	coffeeStat = returny.coffee,
 			chocoStat = returny.chocolate,
 			mateStat = returny.mate,
+			chatLineStat = returny.chatlines,
 			statTotal = coffeeStat + chocoStat + mateStat;
 		
 	console.log(returny);
