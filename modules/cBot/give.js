@@ -53,6 +53,10 @@ exports.exec = function() {
 			}
 			
 			});
+	} else {
+	
+		return chanMsg("Wrong syntax.");
+	
 	}
 
 };
