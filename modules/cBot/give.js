@@ -16,9 +16,9 @@ exports.exec = function() {
 
 	if (isItValid(paramnick, amount)) {
 		
-		cbot.getStats(nick, function (err, data) {
+		cbot.getStats(nick, function (err, dataNick) {
 			if(err) console.log("[cBot.getStats - Error] " + err);
-			else if (typeof data === 'undefined') {
+			else if (typeof dataNick === 'undefined') {
 				cbot.createUser(nick, function(err) {
 					if(err) console.log(err);
 					return chanMsg ("Sorry, you dont have enough tokens. (You have 0!)");
@@ -28,23 +28,24 @@ exports.exec = function() {
 			
 				
 
-				cbot.getStats(paramnick, function (err, data) {
+				cbot.getStats(paramnick, function (err, dataParam) {
 					if(err) console.log("[cBot.getStats - Error] " + err);
-					else if (typeof data === 'undefined') {
+					else if (typeof dataParam === 'undefined') {
 						return chanMsg("Sorry, no stats available for that user. (yet!)");
 					}
 					else {
 					
-						var tokens = Math.round(data.tokens);
+						var paramTokens = Math.round(dataParam.tokens);
+						var nickTokens = Math.round(dataNick.tokens);
 					
 						if (paramnick === nick) return chanMsg("You cant give yourself tokens!");
 						else if (amount <= 0) return chanMsg("You cant give negative/zero amounts of tokens!");
-						else if (amount > tokens) return chanMsg("You do not have enough tokens for that. You have "+ tokens +" token"+((tokens == 1)? "":"s") +".");
+						else if (amount > nickTokens) return chanMsg("You do not have enough tokens for that. You have "+ nickTokens +" token"+((nickTokens == 1)? "":"s") +".");
 					
 						cbot.addTokens(paramnick, amount);
 						cbot.addTokens(nick, -1*amount);
 					
-						return chanMsg("I gave "+amount+" token"+((amount == 1)? "":"s") +" to "+ paramnick +". ("+ (tokens-amount) +" left!)");
+						return chanMsg("I gave "+amount+" token"+((amount == 1)? "":"s") +" to "+ paramnick +". ("+ (nickTokens-amount) +" left!)");
 			}
 			
 			});
