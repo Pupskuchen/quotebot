@@ -11,7 +11,7 @@ exports.desc = {
 // to be executed on command
 exports.exec = function() {
 
-	if (typeof params[0] === 'undefined') return chanMsg("Are you stupid? No drink selected");
+	if (typeof params[0] === 'undefined') return returnCosts();
 
 	var 	returny,
 			price;
@@ -55,6 +55,18 @@ exports.exec = function() {
 	
 
 };
+
+
+function returnCosts() {
+
+	var 	coffeePrice = cbot.coffeePrice,
+			chocoPrice = cbot.chocoPrice,
+			matePrice = cbot.matePrice;
+			
+	return chanMsg("I'm offering: Coffee ("+coffeePrice+"T), Mate ("+matePrice+"T) and (Hot) Chocolate ("+chocoPrice+"T)");
+
+}
+
 
 /*
 // "destructor"
