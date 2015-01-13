@@ -67,7 +67,7 @@ If you set it to false, only users in the ```allowed``` array will be able to us
 
 ### Modules
 
-##### Small Modules
+#### Small Modules
 
 Small modules can be included by file name (with or without .js). They are designed to consist of one command and should basically look like this:
 ```javascript
@@ -92,7 +92,7 @@ exports.stop = function() {
 */
 ```
 
-##### Large Modules
+#### Large Modules
 
 Large modules (like the movie-module) which use their own directory can be loaded by adding the directory to the list.
 node.js will look for an index.js in that directory. That index.js should look like this:
@@ -111,7 +111,7 @@ exports.components = [
 subdeps are dependencies of the components which should be reloaded when reloading the configuration and modules of quotebot.
 components contains the ...components of your module - which can be small modules or imbiber plugins.
 
-##### "imbiber" plugins
+#### "imbiber" plugins
 
 These plugins are made for features that do not need a command because the run the whole time or whatever a dev would like to do.
 You can do whatever you want to do in it. If you do something that needs to be stopped when the plugin gets unloaded, you need to add a kill-command:
@@ -121,7 +121,7 @@ exports.kill = function () {
 };
 ```
 
-##### Modules/Plugins Generally
+#### Modules/Plugins Generally
 
 Every small module/imbiber plugin (large modules don't need that because they consist of small modules) has the following attributes/functions:
 ```javascript
@@ -133,6 +133,17 @@ c // the config;
 ```
 Small modules also get attributes when their command is executed. See quotebot.js to see which, most of them are self-explanatory. If you need help, contact me (see support).
 You could need these when coding your module/plugin.
+
+##### Backup Plugin
+
+This plugin makes backup in a user defined interval. It can be set in the configuration by adding this line:
+```json
+...
+  "backup_interval": 5
+...
+```
+The interval is set in minutes.
+
 
 ## Support
 
