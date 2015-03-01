@@ -30,7 +30,7 @@ exports.exec = function() {
 			if(params[0] === "unset") {
 				if(paramstringparam.length < 1) return paramError("tvar unset <var>");
 				else if(!(paramstringparam in vars)) return chanMsg("no such topic variable");
-				var reg = new RegExp("\\W+"+paramstringparam+":\\s+"+vars[paramstringparam], "g");
+				var reg = new RegExp("[\\s\\\|]+"+paramstringparam+":\\s+"+vars[paramstringparam], "g");
 				client.topic(chan, topic.replace(reg, ''));
 				return;
 			}
