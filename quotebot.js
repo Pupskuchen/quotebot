@@ -417,6 +417,7 @@ function loadModules() {
 	};
 
 	if(c.modules && c.modules.length > 0) {
+		log("info", "loading modules")
 		for(var i = 0; i < c.modules.length; i++) {
 			log("info", "loading module "+c.modules[i]+"...");
 			var path = './modules/'+c.modules[i];
@@ -433,6 +434,7 @@ function loadModules() {
 			}
 			prepareMod(path);
 		}
+		log("info", "all modules loaded")
 	}
 }
 

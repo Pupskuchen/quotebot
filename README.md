@@ -144,6 +144,17 @@ This plugin makes backup in a user defined interval. It can be set in the config
 ```
 The interval is set in minutes.
 
+##### TopicVar Module
+
+This module allows you to kind of store variables in a channel topic. You can easily create, change and delete them.
+If you don't set these modes yourself, it will use ```%@~```.
+You can set the modes in your configuration by adding this:
+```json
+...
+"tvar_allowedModes": "@"
+...
+```
+
 
 ## Support
 
