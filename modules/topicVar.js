@@ -12,6 +12,8 @@ c.tvar_allowedModes = c.tvar_allowedModes || "%@~";
 exports.exec = function() {
 	if(isAllowed()) {
 		if(paramstringparam.length < 1 && params.length < 1) return paramError("tvar <var> <value>");
+		paramstringparam = paramstringparam.replace(/[^\wäüöÄÜÖß\d]/g, '');
+		params[0] = params[0].replace(/[^\w\d-äöüÄÖÜß. ]/g, '');
 		var chan = this.chan;
 		var topic = client.getChannel(chan).getTopic().topic;
 		var regex = /\s+([a-zA-Z0-9-äöüÄÖÜß. ]+):\s+([\wäüöÄÜÖß|\d]+)/g;
@@ -27,17 +29,16 @@ exports.exec = function() {
 			else return chanMsg("no such topic variable");
 		}
 		else {
-			if(params[0] === "unset") {
+			if(params[0] === "unset") { // unset
 				if(paramstringparam.length < 1) return paramError("tvar unset <var>");
 				else if(!(paramstringparam in vars)) return chanMsg("no such topic variable");
 				var reg = new RegExp("[\\s\\\|]+"+paramstringparam+":\\s+"+vars[paramstringparam], "g");
 				client.topic(chan, topic.replace(reg, ''));
 				return;
 			}
-			if(params[0] in vars) {
-				paramstringparam = paramstringparam.replace(/[^\wäüöÄÜÖß|\d]/g, '');
+			if(params[0] in vars) { // change
 				client.topic(chan, topic.replace(params[0]+": "+vars[params[0]], params[0]+": "+paramstringparam));
-			} else {
+			} else { // create
 				client.topic(chan, topic + ' | '+params[0]+': '+paramstringparam);
 			}
 		}
