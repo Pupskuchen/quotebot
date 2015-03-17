@@ -8,9 +8,7 @@ function handler(e) {
 		entities = new Entities();
 		var text = e.message.substr((client.me + ':').length).trim();
 		cb.write(text, function (response) {
-      setTimeout(function () {
-        client.send(e.channel.getName(), e.user.getNick()+": "+entities.decode(response.message));
-      }, 7000);
+      client.send(e.channel.getName(), e.user.getNick()+": "+entities.decode(response.message));
 		});
 		}
 	}
