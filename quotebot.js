@@ -335,7 +335,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		return modules[cmd].exec();
 	}
 
-	chanMsg("Unknown command."); // <- Do we want this?
+	chanMsg("Unknown command.");
 }
 
 // =============================================
@@ -385,7 +385,7 @@ function unloadModules() {
 	});
 	eModules.forEach(function (mod) {
 		if(mod.kill) mod.kill();
-		unload(mod.path);
+		unload(mod.modpath);
 	});
 }
 
@@ -403,21 +403,21 @@ function loadModules() {
 		mod.insert = this.insert = insert;
 	};
 
+	addVars({}); // we need this for the variables to work with other modules (idk why)
+
 	var prepareMod = function (path) {
 			var mod = require(path);
+			mod.modpath = path;
+			addVars(mod);
 			if(mod.command) {
 				modules[mod.command] = mod;
-				modules[mod.command].modpath = path;
-				addVars(modules[mod.command]);
 			} else {
-				mod.path = path;
-				addVars(mod);
 				eModules.push(mod);
 			}
 	};
 
 	if(c.modules && c.modules.length > 0) {
-		log("info", "loading modules")
+		log("info", "loading "+c.modules.length+" module"+(c.modules.length == 1 ? "" : "s"));
 		for(var i = 0; i < c.modules.length; i++) {
 			log("info", "loading module "+c.modules[i]+"...");
 			var path = './modules/'+c.modules[i];

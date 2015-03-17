@@ -2,7 +2,7 @@
 
 This is an irc bot made in node.js.
 It was originally made so irc users could save quotes of each other.
-Anyway I've added the feature to add modules to make it more dynamic and now you can do basically everything with it very easily.
+Anyway I've added the feature to add modules to make it more dynamic™ and now you can do basically everything with it very easily.
 
 
 ## Example config
