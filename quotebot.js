@@ -229,21 +229,23 @@ function execCommand(chan, user, cmd, allowed, owner) {
 						4: stringparam
 					}, function(err, rows) {
 						if(!rows || rows.length < 1) return chanMsg("nothing found");
-						if(rows.length == 1) {
+/*						if(rows.length == 1) {
 							var el = rows[0];
 							el.quote = el.quote.split("\n");
 							chanMsg("#"+el.id+" (by "+el.user+"): \u00ab "+(el.quote.length > 30 ? el.quote.join(" | ").substr(0,30)+"..." : el.quote.join(" | "))+" \u00bb", true);
 							return;
 						}
+*/						if(rows.length > 70) return chanMsg("found too many ("+rows.length+") quotes. be more specific.");
 						var ids = [];
 						rows.forEach(function(el) {
 							ids.push(el.id);
 						});
-						chanMsg(ids.length+" quotes matching your search pattern: "+ids.join(", "));
-						userMsg("I found "+rows.length+" quote"+(rows.length == 1 ? "" : "s")+" matching your pattern.");
+						chanMsg(ids.length+" quote"+(ids.length == 1 ? "" : "s")+" matching your search pattern: "+ids.join(", "));
+						//userMsg("I found "+rows.length+" quote"+(rows.length == 1 ? "" : "s")+" matching your pattern.");
+						if(rows.length <= 3)
 						rows.forEach(function(el, i, arr) {
 							el.quote = el.quote.split("\n");
-							userMsg("#"+el.id+" (by "+el.user+"): \u00ab "+(el.quote.length > 30 ? el.quote.join(" | ").substr(0,30)+"..." : el.quote.join(" | "))+" \u00bb");
+							chanMsg("#"+el.id+" (by "+el.user+"): \u00ab "+(el.quote.length > 30 ? el.quote.join(" | ").substr(0,30)+"..." : el.quote.join(" | "))+" \u00bb");
 						});
 				});
 			});
