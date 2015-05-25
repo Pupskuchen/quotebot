@@ -1,4 +1,4 @@
-var movies = require('./module');
+var movies = require("./module");
 
 exports.command = "ratemovie";
 
@@ -19,7 +19,6 @@ exports.exec = function () {
 
     movies.rate(title, nick, rating, function (error, movie, vote) {
         if (error) {
-            console.log(error);
             return chanMsg("Sorry, but I couldn't rate the movie (did you already rate it?) :(");
         }
 

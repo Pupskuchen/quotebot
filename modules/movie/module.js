@@ -1,24 +1,34 @@
-var DATABASE = 'db/movies.db';
+var DATABASE = "db/movies.db";
 
-var fs      = require('fs'), dbexists = fs.existsSync(DATABASE) ? true : false;
-var util    = require('util'),
-    sqlite  = require('sqlite3'),
-    moment  = require('moment'),
-    omdb    = require('omdb'),
+var fs      = require("fs"), dbexists = fs.existsSync(DATABASE) ? true : false;
+var util    = require("util"),
+    sqlite  = require("sqlite3"),
+    moment  = require("moment"),
+    omdb    = require("omdb"),
     db      = new sqlite.Database(DATABASE);
 
-require('moment-duration-format');
+require("moment-duration-format");
 
 if (!dbexists) {
-    db.serialize(function() {
+    db.serialize(function () {
         db.run("CREATE TABLE IF NOT EXISTS movies (user VARCHAR(32), added BIGINT, title VARCHAR(32) UNIQUE, year SMALLINT, runtime INT, type VARCHAR(32), genres VARCHAR(128), imdb_id VARCHAR(64), imdb_rating SMALLINT, user_rating SMALLINT)");
         db.run("CREATE TABLE IF NOT EXISTS votes (user VARCHAR(32), added BIGINT, movie INT, rating SMALLINT)");
     });
 }
 
-exports.isString = function (string) {
-    return typeof string == 'string' || string instanceof String;
-}
+var isString = function (string) {
+    return typeof string == "string" || string instanceof String;
+};
+exports.isString = isString;
+
+var isImdb = function (string) {
+    if (!isString(string)) {
+        return false;
+    }
+
+    return new RegExp("tt[0-9]{7}").test(string);
+};
+exports.isImdb = isImdb;
 
 exports.add = function (title, user, callback) {
     if(title.length < 3) {
@@ -26,7 +36,8 @@ exports.add = function (title, user, callback) {
     }
 
     var imdb_title = null;
-    var handle = function(error) {
+
+    var handle = function (error) {
         return error ? callback(error) : callback(false, imdb_title);
     };
 
@@ -34,8 +45,10 @@ exports.add = function (title, user, callback) {
         if (error || !movie) {
             return callback(error || true);
         }
+
         imdb_title = movie.title;
-        db.serialize(function() {
+
+        db.serialize(function () {
             db.run("INSERT INTO movies (user, added, title, year, runtime, type, genres, imdb_id, imdb_rating) \
                 VALUES ($user, $added, $title, $year, $runtime, $type, $genres, $imdbId, $imdbRating)", {
                 $user:          user,
@@ -51,19 +64,26 @@ exports.add = function (title, user, callback) {
         });
     };
 
-    var imdbpatt = new RegExp("tt[0-9]{7}");
-
-    if(imdbpatt.test(title)) omdb.get({ imdb: title }, true, insert);
-    else omdb.get({ title: title }, true, insert);
+    if(isImdb(title)) {
+        omdb.get({ imdb: title }, true, insert);
+    } else {
+        omdb.get({ title: title }, true, insert);
+    }
 };
 
 exports.list = function (page, callback) {
     page = page || 1;
     var limit = 5,
         offset = (page - 1) * limit;
+    
+    db.serialize(function () {
+        db.get("SELECT COUNT(*) as count FROM movies", function (error, row) {
+            var total = row.count;
 
-    db.serialize(function() {
-        db.all("SELECT *, rowid as id FROM movies ORDER BY user_rating DESC, imdb_rating DESC LIMIT " + offset + ", " + limit, callback)
+            db.all("SELECT *, rowid as id FROM movies ORDER BY user_rating DESC, imdb_rating DESC LIMIT " + limit + " OFFSET " + offset, function (error, rows) {
+                return callback(error, rows, limit, total);
+            });
+        });
     });
 };
 
@@ -82,7 +102,7 @@ exports.find = function (term, limit, callback) {
         var query = "SELECT *, rowid as id FROM movies WHERE title LIKE ?1 OR title LIKE ?2 OR title LIKE ?3 OR title = ?4 OR \
             year = ?4 OR \
             genres LIKE ?1 OR genres LIKE ?2 OR genres LIKE ?3 OR genres = ?4 LIMIT " + limit,
-            method = (limit == 1 ? 'get' : 'all');
+            method = (limit == 1 ? "get" : "all");
 
         db[method](query, {
             1: "%" + term + "%",
@@ -102,11 +122,8 @@ exports.rate = exports.vote = function (movie, user, rating, callback) {
                 $user:      user,
                 $movie:     movieId
             }, function (error, data) {
-                console.log(error);
-                console.log(data);
+
                 if (error || data.count > 0) {
-                    console.log(error);
-                    console.log(data);
                     return callback(true);
                 }
 
@@ -149,8 +166,8 @@ exports.formatRuntime = function (runtime) {
     return moment.duration(parseInt(runtime), "minutes").format("h [hr(s)], m [min]");
 };
 
-exports.formatImdbUrl = function (imdbId) {
-    return "http://www.imdb.com/title/" + imdbId;
+exports.formatImdbUrl = function (id) {
+    return "http://www.imdb.com/title/" + id;
 };
 
 exports.format = function (movie, short) {
@@ -161,13 +178,14 @@ exports.format = function (movie, short) {
             this.formatImdbUrl(movie.imdb_id)
         );
     }
+
     return util.format("{B}%s:{R} {B}Genres:{R} %s, {B}Runtime:{R} %s, {B}Released:{R} %d, {B}IMDB-Rating:{R} %d, {B}IRC-Rating:{R} %d (added by %s, %s) - %s",
         movie.title,
         movie.genres,
         this.formatRuntime(movie.runtime),
         movie.year,
         movie.imdb_rating || 0.0, movie.user_rating || 0.0,
-        movie.user, new Date(movie.added*1000).toUTCString(),
+        movie.user, new Date(movie.added * 1000).toUTCString(),
         this.formatImdbUrl(movie.imdb_id)
     );
 };

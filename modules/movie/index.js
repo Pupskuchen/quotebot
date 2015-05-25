@@ -1,11 +1,12 @@
 exports.subdeps = [
-  'module'
+    "module"
 ];
+
 exports.components = [
-  'add',
-  'find',
-  'info',
-  'list',
-  'rate',
-  'del'
+    "add",
+    "find",
+    "info",
+    "list",
+    "rate",
+    "del"
 ];
