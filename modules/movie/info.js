@@ -1,4 +1,4 @@
-var movies = require('./module');
+var movies = require("./module");
 
 exports.command = "movieinfo";
 

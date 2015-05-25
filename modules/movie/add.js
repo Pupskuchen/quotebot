@@ -1,4 +1,4 @@
-var movies = require('./module');
+var movies = require("./module");
 
 exports.command = "addmovie";
 
@@ -17,7 +17,7 @@ exports.exec = function () {
             return chanMsg("Sorry, but I couldn't add your movie :(");
         }
 
-        return chanMsg("Movie '" +movietitle + "' successfully added!");
+        return chanMsg("Movie '" + movietitle + "' successfully added!");
     });
 };
 
