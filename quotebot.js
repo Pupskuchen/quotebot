@@ -253,7 +253,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		case "add":
 			if(allowed) {
 				var string = removeTimestamp(stringparam).replace(/[^0-9a-zA-Z]/g, '');
-				if(string === "long") {
+				if(RegExp("long","i").test(string)) {
 					longquotes[nick] = [];
 					userMsg("Waiting for your input. You can enter multiple lines. To end the quote, enter END (in a new line).");
 					return;
