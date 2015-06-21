@@ -147,7 +147,11 @@ function execCommand(chan, user, cmd, allowed, owner) {
 		if(q.length < 1)	return chanMsg("No input given, therefore nothing saved.");
 		execCommand(chan, user, "add "+q.join("\n"), allowed, owner);
 	};
-	
+
+	unHighlight = function(str) {
+		return insert(str, "\u200b");
+	};
+
 	if(pm && nick in longquotes) {
 		if(cmd === "end") endLongQuote();
 		else if(cmd === "cancel" || cmd === "abort") {
@@ -200,8 +204,8 @@ function execCommand(chan, user, cmd, allowed, owner) {
 				d.get(function(err, row) {
 					if(typeof row === "undefined") return chanMsg("nothing found");
 					var dt = new Date(row.added*1000);
-					var q = row.quote.split("\n");
-					chanMsg("quote #"+row.id+": \u00ab "+(q.length == 1 ? row.quote : q.join(" | "))+" \u00bb (added "+dt.toUTCString()+" by "+insert(row.user, "\u200b", 1)+" in "+(row.chan ? insert(row.chan, "\u200b", 2) : "pm")+")", true);
+					var q = unHighlight(row.quote).split("\n");
+					chanMsg("quote #"+row.id+": \u00ab "+(q.length == 1 ? unHighlight(row.quote) : q.join(" | "))+" \u00bb (added "+dt.toUTCString()+" by "+unHighlight(row.user)+" in "+(row.chan ? row.chan : "pm")+")", true);
 				});
 				d.finalize();
 			});
@@ -229,23 +233,16 @@ function execCommand(chan, user, cmd, allowed, owner) {
 						4: stringparam
 					}, function(err, rows) {
 						if(!rows || rows.length < 1) return chanMsg("nothing found");
-/*						if(rows.length == 1) {
-							var el = rows[0];
-							el.quote = el.quote.split("\n");
-							chanMsg("#"+el.id+" (by "+el.user+"): \u00ab "+(el.quote.length > 30 ? el.quote.join(" | ").substr(0,30)+"..." : el.quote.join(" | "))+" \u00bb", true);
-							return;
-						}
-*/						if(rows.length > 70) return chanMsg("found too many ("+rows.length+") quotes. be more specific.");
+						if(rows.length > 70) return chanMsg("found too many ("+rows.length+") quotes. be more specific.");
 						var ids = [];
 						rows.forEach(function(el) {
 							ids.push(el.id);
 						});
 						chanMsg(ids.length+" quote"+(ids.length == 1 ? "" : "s")+" matching your search pattern: "+ids.join(", "));
-						//userMsg("I found "+rows.length+" quote"+(rows.length == 1 ? "" : "s")+" matching your pattern.");
 						if(rows.length <= 3)
 						rows.forEach(function(el, i, arr) {
-							el.quote = el.quote.split("\n");
-							chanMsg("#"+el.id+" (by "+el.user+"): \u00ab "+(el.quote.length > 30 ? el.quote.join(" | ").substr(0,30)+"..." : el.quote.join(" | "))+" \u00bb");
+							el.quote = unHighlight(el.quote).split("\n");
+							chanMsg("#"+el.id+" (by "+unHighlight(el.user)+"): \u00ab "+(el.quote.length > 30 ? el.quote.join(" | ").substr(0,30)+"..." : el.quote.join(" | "))+" \u00bb");
 						});
 				});
 			});
@@ -507,6 +504,7 @@ function error(type, message) {
 }
 
 function insert(str, ins, pos) {
+	if(pos === undefined) return str.split('').join(ins);
 	return [str.slice(0,pos), ins, str.slice(pos)].join('');
 }
 
