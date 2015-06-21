@@ -205,7 +205,7 @@ function execCommand(chan, user, cmd, allowed, owner) {
 					if(typeof row === "undefined") return chanMsg("nothing found");
 					var dt = new Date(row.added*1000);
 					var q = unHighlight(row.quote).split("\n");
-					chanMsg("quote #"+row.id+": \u00ab "+(q.length == 1 ? unHighlight(row.quote) : q.join(" | "))+" \u00bb (added "+dt.toUTCString()+" by "+unHighlight(row.user)+" in "+(row.chan ? row.chan : "pm")+")", true);
+					chanMsg("quote #"+row.id+": \u00ab "+(q.length == 1 ? unHighlight(row.quote) : q.join(" | "))+" \u00bb (added "+dt.toUTCString()+" by "+unHighlight(row.user)+" in "+(row.chan ? unHighlight(row.chan) : "pm")+")", true);
 				});
 				d.finalize();
 			});
