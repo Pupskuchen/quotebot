@@ -12,11 +12,11 @@ c.tvar_allowedModes = c.tvar_allowedModes || "%@~";
 exports.exec = function() {
 	if(isAllowed()) {
 		if(paramstringparam.length < 1 && params.length < 1) return paramError("tvar <var> <value>");
-		paramstringparam = paramstringparam.replace(/[^\wäüöÄÜÖß\d]/g, '');
+		paramstringparam = paramstringparam === "++" ? "++" : paramstringparam.replace(/[^\w-äüöÄÜÖß\d]/g, '');
 		params[0] = params[0].replace(/[^\w\d-äöüÄÖÜß. ]/g, '');
 		var chan = this.chan;
 		var topic = client.getChannel(chan).getTopic().topic;
-		var regex = /\s+([a-zA-Z0-9-äöüÄÖÜß. ]+):\s+([\wäüöÄÜÖß|\d]+)/g;
+		var regex = /\s+([a-zA-Z0-9-äöüÄÖÜß. ]+):\s+([\w-äüöÄÜÖß|\d]+)/g;
 		var match = regex.exec(topic);
 		var vars = {};
 		while(match != null) {
@@ -37,9 +37,9 @@ exports.exec = function() {
 				return;
 			}
 			if(params[0] in vars) { // change
-				client.topic(chan, topic.replace(params[0]+": "+vars[params[0]], params[0]+": "+paramstringparam));
+				client.topic(chan, topic.replace(params[0]+": "+vars[params[0]], params[0]+": "+(paramstringparam === "++" ? (parseInt(vars[params[0]])+1) : paramstringparam)));
 			} else { // create
-				client.topic(chan, topic + ' | '+params[0]+': '+paramstringparam);
+				client.topic(chan, topic + ' | '+params[0]+': '+(paramstringparam === "++" ? 1 : paramstringparam));
 			}
 		}
 	} else return permissionError();
