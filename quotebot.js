@@ -36,10 +36,10 @@ client.on('message', function(e) {
 	if(!e.isAction) {
 		if(Object.prototype.toString.call(c.commandchar) === '[object Array]') {
 			for(var i = 0; i < c.commandchar.length; i++) {
-				if(e.message.charAt(0) === c.commandchar[i]) parseCommand(e.channel.getName(), e.user, e.message.substr(c.commandchar[i].length));
+				if(e.message.charAt(0) === c.commandchar[i]) parseCommand(e.channel, e.user, e.message.substr(c.commandchar[i].length));
 			}
 		} else {
-			if(e.message.charAt(0) === c.commandchar) parseCommand(e.channel.getName(), e.user, e.message.substr(c.commandchar.length));
+			if(e.message.charAt(0) === c.commandchar) parseCommand(e.channel, e.user, e.message.substr(c.commandchar.length));
 		}
 	}
 });
@@ -87,7 +87,8 @@ var cmds = {
 };
 var longquotes = {};
 
-function execCommand(chan, user, cmd, allowed, owner) {
+function execCommand(channel, user, cmd, allowed, owner) {
+	chan = channel ? channel.getName() : null;
 	nick = user.getNick();
 	cmd = cmd.replace(/^\s+|\s+$/g,'');
 	raw = cmd;
@@ -149,7 +150,11 @@ function execCommand(chan, user, cmd, allowed, owner) {
 	};
 
 	unHighlight = function(str) {
-		return insert(str, "\u200b");
+		var nicks = channel.getNames();
+		for(user in nicks) {
+			str = str.replace(user, insert(user, "\u200b", 1));
+		}
+		return str;
 	};
 
 	if(pm && nick in longquotes) {
