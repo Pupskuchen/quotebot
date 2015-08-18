@@ -75,7 +75,7 @@ function parseCommand(chan, user, msg) {
 
 var cmds = {
 	"find": {desc: {params: "<string>", desc: "find quote(s) containing the given string"}},
-	"q": {desc: {params: "[<id>]", desc: "show random quote or quote with given id"}},
+	"q": {desc: {params: "[<id>|<pattern>]", desc: "show random quote or quote with given id"}},
 	"count": {desc: {params: "[users|quotes]", desc: "echoes amount of configured users and/or quotes in database"}},
 	"about": {desc: {params: "", desc: ""}},
 	"modules": {desc: {params: "", desc: "list all loaded modules"}},
@@ -157,6 +157,22 @@ function execCommand(channel, user, cmd, allowed, owner) {
 		return str;
 	};
 
+	searchPattern = function(str) {
+		mres = function(s) {
+			return {
+				1: "%"+s+"%",
+				2: "%"+s,
+				3: s+"%",
+				4: s
+			};
+		};
+		if(str.indexOf(" ") != -1) {
+			str = str.replace(new RegExp(" ", "ig"), "%");
+			return mres(str);
+		}
+		return mres(str);
+	};
+
 	if(pm && nick in longquotes) {
 		if(cmd === "end") endLongQuote();
 		else if(cmd === "cancel" || cmd === "abort") {
@@ -205,12 +221,7 @@ function execCommand(channel, user, cmd, allowed, owner) {
 			db.serialize(function() {
 				var d, r = new RegExp(/[0-9]+/);
 				if(params.length > 0 && !isNaN(params[0]) && r.test(params[0])) d = db.prepare("SELECT *, rowid AS id FROM quotes WHERE id = ?", params[0]);
-				else if(params.length > 0 && isNaN(params[0])) d = db.prepare("SELECT *, rowid AS id FROM quotes WHERE quote LIKE ?1 OR quote LIKE ?2 OR quote LIKE ?3 OR quote LIKE ?4 ORDER BY RANDOM() LIMIT 1", {
-					1: "%"+params[0]+"%",
-					2: "%"+params[0],
-					3: params[0]+"%",
-					4: params[0]
-				});
+				else if(params.length > 0 && isNaN(stringparam)) d = db.prepare("SELECT *, rowid AS id FROM quotes WHERE quote LIKE ?1 OR quote LIKE ?2 OR quote LIKE ?3 OR quote LIKE ?4 ORDER BY RANDOM() LIMIT 1", searchPattern(stringparam));
 				else d = db.prepare("SELECT *, rowid AS id FROM quotes ORDER BY RANDOM() LIMIT 1");
 				d.get(function(err, row) {
 					if(typeof row === "undefined") return chanMsg("nothing found");
@@ -238,20 +249,16 @@ function execCommand(channel, user, cmd, allowed, owner) {
 		case "find":
 			if(stringparam.length < 3) return paramError("find <string> (string must at least have 3 characters)");
 			db.serialize(function() {
-				db.all("SELECT rowid AS id, quote, user FROM quotes WHERE quote LIKE ?1 OR quote LIKE ?2 OR quote LIKE ?3 OR quote = ?4", {
-						1: "%"+stringparam+"%",
-						2: "%"+stringparam,
-						3: stringparam+"%",
-						4: stringparam
-					}, function(err, rows) {
+				db.all("SELECT rowid AS id, quote, user FROM quotes WHERE quote LIKE ?1 OR quote LIKE ?2 OR quote LIKE ?3 OR quote = ?4", searchPattern(stringparam),
+					function(err, rows) {
 						if(!rows || rows.length < 1) return chanMsg("nothing found");
 						if(rows.length > 70) return chanMsg("found too many ("+rows.length+") quotes. be more specific.");
 						var ids = [];
 						rows.forEach(function(el) {
 							ids.push(el.id);
 						});
-						chanMsg(ids.length+" quote"+(ids.length == 1 ? "" : "s")+" matching your search pattern: "+ids.join(", "));
-						if(rows.length <= 3)
+						if(rows.length > 3) chanMsg(ids.length+" quote"+(ids.length == 1 ? "" : "s")+" matching your search pattern: "+ids.join(", "));
+						else
 						rows.forEach(function(el, i, arr) {
 							el.quote = unHighlight(el.quote).split("\n");
 							chanMsg("#"+el.id+" (by "+unHighlight(el.user)+"): \u00ab "+(el.quote.length > 30 ? el.quote.join(" | ").substr(0,30)+"..." : el.quote.join(" | "))+" \u00bb");
