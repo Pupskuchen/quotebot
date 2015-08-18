@@ -152,7 +152,7 @@ function execCommand(channel, user, cmd, allowed, owner) {
 	unHighlight = function(str) {
 		var nicks = channel.getNames();
 		for(user in nicks) {
-			str = str.replace(user, insert(user, "\u200b", 1));
+			str = str.replace(new RegExp(user, "ig"), insert(user, "\u200b", 1));
 		}
 		return str;
 	};
@@ -205,12 +205,19 @@ function execCommand(channel, user, cmd, allowed, owner) {
 			db.serialize(function() {
 				var d, r = new RegExp(/[0-9]+/);
 				if(params.length > 0 && !isNaN(params[0]) && r.test(params[0])) d = db.prepare("SELECT *, rowid AS id FROM quotes WHERE id = ?", params[0]);
+				else if(params.length > 0 && isNaN(params[0])) d = db.prepare("SELECT *, rowid AS id FROM quotes WHERE quote LIKE ?1 OR quote LIKE ?2 OR quote LIKE ?3 OR quote LIKE ?4 ORDER BY RANDOM() LIMIT 1", {
+					1: "%"+params[0]+"%",
+					2: "%"+params[0],
+					3: params[0]+"%",
+					4: params[0]
+				});
 				else d = db.prepare("SELECT *, rowid AS id FROM quotes ORDER BY RANDOM() LIMIT 1");
 				d.get(function(err, row) {
 					if(typeof row === "undefined") return chanMsg("nothing found");
 					var dt = new Date(row.added*1000);
-					var q = unHighlight(row.quote).split("\n");
-					chanMsg("quote #"+row.id+": \u00ab "+(q.length == 1 ? unHighlight(row.quote) : q.join(" | "))+" \u00bb (added "+dt.toUTCString()+" by "+unHighlight(row.user)+" in "+(row.chan ? unHighlight(row.chan) : "pm")+")", true);
+					row.quote = unHighlight(row.quote);
+					var q = row.quote.split("\n");
+					chanMsg("quote #"+row.id+": \u00ab "+(q.length == 1 ? row.quote : q.join(" | "))+" \u00bb (added "+dt.toUTCString()+" by "+unHighlight(row.user)+" in "+(row.chan ? unHighlight(row.chan) : "pm")+")", true);
 				});
 				d.finalize();
 			});
