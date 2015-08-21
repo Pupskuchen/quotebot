@@ -350,6 +350,7 @@ function execCommand(channel, user, cmd, allowed, owner) {
 		modules[cmd].stringparam = stringparam;
 		modules[cmd].paramparams = paramparams;
 		modules[cmd].paramstringparam = paramstringparam;
+		modules[cmd].unHighlight = unHighlight;
 		return modules[cmd].exec();
 	}
 
