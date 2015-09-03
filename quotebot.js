@@ -150,6 +150,7 @@ function execCommand(channel, user, cmd, allowed, owner) {
 	};
 
 	unHighlight = function(str) {
+		if(pm) return str;
 		var nicks = channel.getNames();
 		for(user in nicks) {
 			str = str.replace(new RegExp(user, "ig"), insert(user, "\u200b", 1));
