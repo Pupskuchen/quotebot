@@ -275,7 +275,7 @@ function execCommand(channel, user, cmd, allowed, owner) {
 					userMsg("Waiting for your input. You can enter multiple lines. To end the quote, enter END (in a new line).");
 					return;
 				}
-				if(string.length < 3) return paramError("add <quote> (at least 5 characters)");
+				if(string.length < 5) return paramError("add <quote> (at least 5 characters)");
 				db.serialize(function() {
 					db.run("INSERT INTO quotes (user, added, chan, quote) VALUES($user, $added, $chan, $quote)", {
 						$user: nick,
