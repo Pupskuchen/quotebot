@@ -11,7 +11,7 @@ function copy (src, tgt) {
 
   var read = fs.createReadStream(src);
   read.on('error', cb);
-  if(c) return false;
+  if (c) return false;
   var write = fs.createWriteStream(tgt);
   write.on('error', cb);
   if(c) return false;
