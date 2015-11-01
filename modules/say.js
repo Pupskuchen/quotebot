@@ -7,8 +7,8 @@ exports.desc = {
 };
 
 exports.exec = function() {
-	if(params.length < 1) return chanMsg("u stupid");
-	if(pm && params[0].charAt(0) == "#" && paramstringparam.length < 1) return userMsg('no.');
-	if(pm && params[0].charAt(0) == "#") chanMsg(paramstringparam, true, params[0]);
+	if (params.length < 1) return chanMsg("u stupid");
+	if (pm && params[0].charAt(0) == "#" && paramstringparam.length < 1) return userMsg('no.');
+	if (pm && params[0].charAt(0) == "#") chanMsg(paramstringparam, true, params[0]);
 	else chanMsg(stringparam, true);
 };
