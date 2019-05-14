@@ -8,5 +8,5 @@ exports.desc = {
 
 exports.exec = function() {
 	var d = new Date();
-	chanMsg('time: '+d.toUTCString()+" | unix timestamp: "+Math.round(Date.now()/1000));
+	chanMsg('time: ' + d.toUTCString() + " | unix timestamp: " + Math.round(Date.now()/1000));
 };
