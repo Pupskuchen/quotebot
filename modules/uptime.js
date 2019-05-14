@@ -13,7 +13,7 @@ exports.exec = function() {
 	var h = Math.floor((t / 3600) % 24);
 	var m = Math.floor((t / 60) % 60);
 	var s = Math.floor(t % 60);
-	chanMsg("I'm up "+d+"d "+h+"h "+m+"m "+s+"s.");
+	chanMsg("I'm up " + d + "d " + h + "h " + m + "m " + s + "s.");
 };
 
 /*
